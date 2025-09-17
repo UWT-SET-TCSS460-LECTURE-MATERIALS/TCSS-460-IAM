@@ -1,26 +1,79 @@
-import express, { Express, Request, Response } from 'express';
+// src/index.ts
+import { Server } from 'http';
+import { getEnvVar, connectToDatabase, disconnectFromDatabase } from './core/utilities';
+import { app } from './app';
 
-import cors from 'cors';
+const PORT: number = parseInt(getEnvVar('PORT', '8000'));
 
-import { routes } from './routes';
-
-const app: Express = express();
-
-const PORT: number = parseInt(process.env.PORT) || 4001;
-
-app.use(cors());
-
-/*
- * This middleware function parses JSON in the body of POST requests
+/**
+ * Initialize application services
+ * Sets up database connection and other required services
  */
-app.use(express.json());
+const initializeServices = async (): Promise<void> => {
+    try {
+        await connectToDatabase();
+        console.log('🚀 All services initialized successfully');
+    } catch (error) {
+        console.error('❌ Failed to initialize services:', error);
+        process.exit(1);
+    }
+};
 
-app.use(routes);
+/**
+ * Start the HTTP server
+ * This file handles only server lifecycle management
+ * Express app configuration is handled in app.ts
+ */
+const startServer = async (): Promise<Server> => {
+    // Initialize services first
+    await initializeServices();
 
-app.get('/', (request: Request, response: Response) => {
-    response.send('<h1>Hello World!</h1><h2>Hello Heroku!</h2>');
+    // Start HTTP server
+    const server: Server = app.listen(PORT, () => {
+        console.log(`✅ Auth² Service is running at http://localhost:${PORT}`);
+        console.log(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
+        console.log(`🔐 Admin routes available at http://localhost:${PORT}/admin/*`);
+    });
+
+    /**
+     * Graceful shutdown handler
+     * Properly closes server and database connections on termination signals
+     */
+    const gracefulShutdown = async (signal: string) => {
+        console.log(`${signal} signal received: initiating graceful shutdown`);
+
+        try {
+            // Close HTTP server
+            await new Promise<void>((resolve) => {
+                server.close(() => {
+                    console.log('✅ HTTP server closed');
+                    resolve();
+                });
+            });
+
+            // Close database connection
+            await disconnectFromDatabase();
+
+            console.log('✅ Graceful shutdown completed');
+            process.exit(0);
+        } catch (error) {
+            console.error('❌ Error during shutdown:', error);
+            process.exit(1);
+        }
+    };
+
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+    // Store server reference for potential use in testing
+    return server;
+};
+
+// Start the application
+startServer().catch((error) => {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
 });
 
-app.listen(PORT, () => {
-    return console.log(`Express is listening at http://localhost:${PORT}`);
-});
+export { startServer };

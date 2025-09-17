@@ -1,13 +1,15 @@
-import express, { Router } from 'express';
-
+import { Router } from 'express';
 import { openRoutes } from './open';
-import { authRoutes } from './auth';
 import { closedRoutes } from './closed';
+import { adminRoutes } from '@routes/admin';
 
-const routes: Router = express.Router();
+const routes = Router();
 
-routes.use(openRoutes);
-routes.use(authRoutes);
-routes.use(closedRoutes);
+// Mount all route groups
+routes.use('', openRoutes);
+
+routes.use('', closedRoutes);
+
+routes.use('/admin', adminRoutes);
 
 export { routes };

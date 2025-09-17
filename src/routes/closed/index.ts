@@ -1,13 +1,44 @@
 import express, { Router } from 'express';
-
-import { checkToken } from '../../core/middleware';
-import { tokenTestRouter } from './tokenTest';
-import { messageRouter } from './closed_message';
+import { AuthController, VerificationController } from '@controllers';
+import { checkToken, validatePasswordChange, validatePhoneSend, validatePhoneVerify } from '@middleware';
 
 const closedRoutes: Router = express.Router();
 
-closedRoutes.use('/jwt_test', checkToken, tokenTestRouter);
+// All closed routes require authentication
+closedRoutes.use(checkToken);
 
-closedRoutes.use('/c/message', checkToken, messageRouter);
+// ===== JWT TEST ROUTE =====
+
+/**
+ * Test JWT token validity
+ * GET /jwt_test
+ */
+closedRoutes.get('/jwt_test', AuthController.testJWT);
+
+// ===== AUTHENTICATED AUTH ROUTES =====
+
+/**
+ * Change password (requires authentication and old password)
+ * POST /auth/user/password/change
+ */
+closedRoutes.post('/auth/user/password/change', validatePasswordChange, AuthController.changePassword);
+
+/**
+ * Send SMS verification code
+ * POST /auth/verify/phone/send
+ */
+closedRoutes.post('/auth/verify/phone/send', validatePhoneSend, VerificationController.sendSMSVerification);
+
+/**
+ * Verify SMS code
+ * POST /auth/verify/phone/verify
+ */
+closedRoutes.post('/auth/verify/phone/verify', validatePhoneVerify, VerificationController.verifySMSCode);
+
+/**
+ * Send email verification
+ * POST /auth/verify/email/send
+ */
+closedRoutes.post('/auth/verify/email/send', VerificationController.sendEmailVerification);
 
 export { closedRoutes };
