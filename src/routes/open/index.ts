@@ -46,4 +46,12 @@ openRoutes.get('/auth/verify/carriers', VerificationController.getCarriers);
  */
 openRoutes.get('/auth/verify/email/confirm', VerificationController.confirmEmailVerification);
 
+// ===== TESTING ROUTES =====
+
+/**
+ * Simple test endpoint (no authentication required)
+ * GET /jwt_test
+ */
+openRoutes.get('/jwt_test', AuthController.testJWT);
+
 export { openRoutes };

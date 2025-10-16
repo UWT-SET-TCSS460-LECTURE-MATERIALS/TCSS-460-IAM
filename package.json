@@ -1,7 +1,7 @@
 {
-    "name": "auth-squared-service",
+    "name": "tcss-460-auth-squared",
     "version": "1.0.0",
-    "description": "Auth² Service - Identity and Authentication/Authorization Service for TCSS 460",
+    "description": "TCSS-460-auth-squared - Identity and Authentication/Authorization Service for TCSS 460",
     "main": "dist/app.js",
     "scripts": {
         "postinstall": "tsc",
@@ -30,7 +30,7 @@
     "author": "Charles Bryan",
     "repository": {
         "type": "git",
-        "url": "https://github.com/cfb3/auth-squared-service"
+        "url": "https://github.com/cfb3/TCSS-460-auth-squared"
     },
     "engines": {
         "node": "22.14.0"

@@ -7,13 +7,7 @@ const closedRoutes: Router = express.Router();
 // All closed routes require authentication
 closedRoutes.use(checkToken);
 
-// ===== JWT TEST ROUTE =====
-
-/**
- * Test JWT token validity
- * GET /jwt_test
- */
-closedRoutes.get('/jwt_test', AuthController.testJWT);
+// JWT test route has been moved to open routes for easier testing
 
 // ===== AUTHENTICATED AUTH ROUTES =====
 

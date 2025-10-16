@@ -1,10 +1,10 @@
 openapi: 3.0.0
 info:
-  title: Auth² Service API
+  title: TCSS-460-auth-squared API
   description: |
     # Authentication × Authorization = Auth²
-    
-    Complete API documentation for the Auth² Service - a comprehensive authentication and authorization system for teaching web API development.
+
+    Complete API documentation for TCSS-460-auth-squared - a comprehensive authentication and authorization system for teaching web API development.
     
     ## Authentication Flow
     1. **Register** a new account (`POST /auth/register`) - Creates a basic user (role 1)

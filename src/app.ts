@@ -38,7 +38,7 @@ export const createApp = (): Express => {
     // Root endpoint
     app.get('/', (request: Request, response: Response) => {
         response.send(`
-            <h1>Auth² Service</h1>
+            <h1>TCSS-460-auth-squared</h1>
             <h2>Authentication × Authorization</h2>
             <p>API Documentation: <a href="/api-docs">/api-docs</a></p>
             <p>Admin Panel: Available at /admin routes (requires admin authentication)</p>

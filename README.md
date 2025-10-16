@@ -1,6 +1,6 @@
-# Auth² Service
+# TCSS-460-auth-squared
 
-**Identity and Authentication/Authorization Service**  
+**Identity and Authentication/Authorization Service**
 _Authentication × Authorization = Auth²_
 
 ## Overview

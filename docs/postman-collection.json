@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "auth2-service-collection",
-		"name": "Auth² Service - Role Management Test",
-		"description": "Test collection for Auth² Service focusing on admin role management functionality",
+		"name": "TCSS-460-auth-squared - Role Management Test",
+		"description": "Test collection for TCSS-460-auth-squared focusing on admin role management functionality",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
