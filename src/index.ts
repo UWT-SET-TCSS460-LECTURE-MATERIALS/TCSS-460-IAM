@@ -32,6 +32,7 @@ const startServer = async (): Promise<Server> => {
     const server: Server = app.listen(PORT, () => {
         console.log(`✅ TCSS-460-auth-squared is running at http://localhost:${PORT}`);
         console.log(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
+        console.log(`📖 Educational Documentation available at http://localhost:${PORT}/doc/`);
         console.log(`🔐 Admin routes available at http://localhost:${PORT}/admin/*`);
     });
 

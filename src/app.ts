@@ -3,6 +3,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
+import path from 'path';
 
 // Import utilities
 import { validateEnv, initializeEmailService } from './core/utilities';
@@ -32,26 +33,25 @@ export const createApp = (): Express => {
     // }));
     app.use(express.json());
 
-    // Routes
-    app.use(routes);
+    // Serve static files from public directory
+    app.use(express.static(path.join(__dirname, '../public')));
 
-    // Root endpoint
+    // Root endpoint (must be before routes to avoid being caught by auth middleware)
+    // Serves index.html from public directory
     app.get('/', (request: Request, response: Response) => {
-        response.send(`
-            <h1>TCSS-460-auth-squared</h1>
-            <h2>Authentication × Authorization</h2>
-            <p>API Documentation: <a href="/api-docs">/api-docs</a></p>
-            <p>Admin Panel: Available at /admin routes (requires admin authentication)</p>
-        `);
+        response.sendFile(path.join(__dirname, '../public/index.html'));
     });
 
-    // Load and setup Swagger documentation
+    // Load and setup Swagger documentation (must be before routes)
     try {
         const swaggerDocument = YAML.load('./docs/swagger.yaml');
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     } catch (error) {
         console.warn('⚠️ Swagger documentation not found at ./docs/swagger.yaml');
     }
+
+    // Routes (mounted after public endpoints)
+    app.use(routes);
 
     return app;
 };

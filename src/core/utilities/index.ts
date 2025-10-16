@@ -8,4 +8,5 @@ export * from './emailService';
 export * from './tokenUtils';
 export * from './userExistenceUtils';
 export * from './transactionUtils';
+export * from './markdownUtils';
 
