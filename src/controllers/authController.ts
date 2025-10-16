@@ -353,12 +353,13 @@ export class AuthController {
     }
 
     /**
-     * Test JWT token validity
+     * Simple test endpoint (no authentication required)
      */
     static async testJWT(request: IJwtRequest, response: Response): Promise<void> {
-        // If we reach here, the JWT middleware has already validated the token
         response.status(200).json({
-            message: 'Your token is valid'
+            message: 'Hello World! API is working correctly.',
+            timestamp: new Date().toISOString(),
+            service: 'TCSS-460-auth-squared'
         });
     }
 }
