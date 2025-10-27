@@ -15,6 +15,11 @@ module.exports = {
         '!src/**/*.spec.ts',
     ],
 
+    // Transform ES modules from node_modules
+    transformIgnorePatterns: [
+        'node_modules/(?!(marked|highlight.js)/)',
+    ],
+
     // Handle your TypeScript path mappings
     moduleNameMapper: {
         '^@core/(.*)$': '<rootDir>/src/core/$1',

@@ -1,3 +1,11 @@
+// Mock markdownUtils to avoid ESM module issues in tests
+jest.mock('../markdownUtils', () => ({
+    markdownToHtml: jest.fn(),
+    readMarkdownFile: jest.fn(),
+    getMarkdownFiles: jest.fn(),
+    generateDocsIndex: jest.fn(),
+}));
+
 import {
     isStringProvided,
     isValidEmail,
