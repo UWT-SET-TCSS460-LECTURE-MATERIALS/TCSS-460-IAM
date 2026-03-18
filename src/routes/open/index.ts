@@ -1,7 +1,6 @@
 import express, { Router } from 'express';
 import { AuthController, VerificationController } from '@controllers';
 import { validateLogin, validateRegister, validatePasswordReset, validatePasswordResetRequest } from '@middleware';
-import { docsRoutes } from './docs';
 
 const openRoutes: Router = express.Router();
 
@@ -47,6 +46,16 @@ openRoutes.get('/auth/verify/carriers', VerificationController.getCarriers);
  */
 openRoutes.get('/auth/verify/email/confirm', VerificationController.confirmEmailVerification);
 
+// ===== HEALTH CHECK =====
+
+/**
+ * Health check endpoint for Render and monitoring
+ * GET /health
+ */
+openRoutes.get('/health', (_req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // ===== TESTING ROUTES =====
 
 /**
@@ -54,15 +63,5 @@ openRoutes.get('/auth/verify/email/confirm', VerificationController.confirmEmail
  * GET /jwt_test
  */
 openRoutes.get('/jwt_test', AuthController.testJWT);
-
-// ===== DOCUMENTATION ROUTES =====
-
-/**
- * Educational documentation routes
- * GET /doc - Documentation index
- * GET /doc/:filename - Rendered markdown file
- * GET /doc/raw/:filename - Raw markdown file
- */
-openRoutes.use('/doc', docsRoutes);
 
 export { openRoutes };
