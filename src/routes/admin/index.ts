@@ -13,8 +13,12 @@ import {
     validateAdminRoleChange,
     validateAdminUsersList
 } from '@middleware';
+import { tenantAdminRoutes } from './tenants';
 
 const adminRoutes = Router();
+
+// Mount tenant admin routes (requires Owner role — enforced within tenantAdminRoutes)
+adminRoutes.use('/tenants', tenantAdminRoutes);
 
 // All admin routes require authentication and admin role
 adminRoutes.use(checkToken);
