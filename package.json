@@ -14,7 +14,7 @@
         "docker:up": "docker compose up -d",
         "docker:down": "docker compose down",
         "docker:restart": "docker compose restart",
-        "docker:delete": "npm run docker:down && rm -rf ~/apps/postgres",
+        "docker:delete": "docker compose down -v",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
         "prisma:migrate:deploy": "prisma migrate deploy",
