@@ -1,9 +1,10 @@
 // src/app.ts
 import express, { Express, Request, Response } from 'express';
+import path from 'path';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
-import path from 'path';
 
 // Import utilities
 import { validateEnv, initializeEmailService } from './core/utilities';
@@ -25,6 +26,10 @@ export const createApp = (): Express => {
 
     const app: Express = express();
 
+    // View engine setup (EJS for server-rendered OAuth/account pages)
+    app.set('view engine', 'ejs');
+    app.set('views', path.join(__dirname, 'views'));
+
     // Middleware
     app.use(cors());
     // app.use(cors({
@@ -32,6 +37,8 @@ export const createApp = (): Express => {
     //     credentials: true
     // }));
     app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
 
     // Serve static files from public directory
     app.use(express.static(path.join(__dirname, '../public')));
