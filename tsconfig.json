@@ -24,8 +24,9 @@
       "@utilities": ["core/utilities/index"],
       "@middleware": ["core/middleware/index"],
       "@models": ["core/models/index"],
-      "@db": ["core/utilities/database"],  // Direct access to database
-      "@auth": ["core/utilities/credentialingUtils"]  // Auth utilities
+      "@lib/*": ["lib/*"],                         // Library utilities (Prisma, etc.)
+      "@db": ["core/utilities/database"],             // Direct access to database (legacy)
+      "@auth": ["core/utilities/credentialingUtils"]   // Auth utilities
     }
   },
   "include": ["src/**/*"],

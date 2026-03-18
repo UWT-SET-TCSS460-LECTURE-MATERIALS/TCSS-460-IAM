@@ -1,0 +1,86 @@
+// Prisma Schema for Auth-Squared
+// Matches existing database schema from data/init.sql
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Existing Tables (migrated from raw SQL)
+// ============================================================
+
+model Account {
+  accountId     Int      @id @default(autoincrement()) @map("account_id")
+  firstName     String   @map("firstname") @db.VarChar(255)
+  lastName      String   @map("lastname") @db.VarChar(255)
+  username      String   @unique @db.VarChar(255)
+  email         String   @unique @db.VarChar(255)
+  emailVerified Boolean  @default(false) @map("email_verified")
+  phone         String   @unique @db.VarChar(15)
+  phoneVerified Boolean  @default(false) @map("phone_verified")
+  accountRole   Int      @map("account_role")
+  accountStatus String   @default("pending") @map("account_status") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  credential         AccountCredential?
+  emailVerifications EmailVerification[]
+  phoneVerifications PhoneVerification[]
+
+  @@index([email], map: "idx_account_email")
+  @@index([phone], map: "idx_account_phone")
+  @@index([username], map: "idx_account_username")
+  @@index([accountStatus], map: "idx_account_status")
+  @@map("account")
+}
+
+model AccountCredential {
+  credentialId Int    @id @default(autoincrement()) @map("credential_id")
+  accountId    Int    @unique @map("account_id")
+  saltedHash   String @map("salted_hash") @db.VarChar(255)
+  salt         String? @db.VarChar(255)
+
+  account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+
+  @@map("account_credential")
+}
+
+model EmailVerification {
+  verificationId Int      @id @default(autoincrement()) @map("verification_id")
+  accountId      Int      @map("account_id")
+  email          String   @db.VarChar(255)
+  verificationToken String @unique @map("verification_token") @db.VarChar(64)
+  tokenExpires   DateTime @map("token_expires") @db.Timestamptz()
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+
+  @@index([accountId], map: "idx_email_verification_account")
+  @@index([verificationToken], map: "idx_email_verification_token")
+  @@index([tokenExpires], map: "idx_email_verification_expires")
+  @@map("email_verification")
+}
+
+model PhoneVerification {
+  verificationId   Int      @id @default(autoincrement()) @map("verification_id")
+  accountId        Int      @map("account_id")
+  phone            String   @db.VarChar(15)
+  verificationCode String   @map("verification_code") @db.VarChar(6)
+  codeExpires      DateTime @map("code_expires") @db.Timestamptz()
+  attempts         Int      @default(0)
+  verified         Boolean  @default(false)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+
+  @@index([accountId], map: "idx_phone_verification_account")
+  @@index([verificationCode], map: "idx_phone_verification_code")
+  @@index([codeExpires], map: "idx_phone_verification_expires")
+  @@map("phone_verification")
+}

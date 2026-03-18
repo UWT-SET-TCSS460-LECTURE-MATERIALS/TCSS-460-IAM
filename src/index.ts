@@ -1,17 +1,21 @@
 // src/index.ts
 import { Server } from 'http';
 import { getEnvVar, connectToDatabase, disconnectFromDatabase } from './core/utilities';
+import { prisma } from './lib/prisma';
 import { app } from './app';
 
 const PORT: number = parseInt(getEnvVar('PORT', '8000'));
 
 /**
  * Initialize application services
- * Sets up database connection and other required services
+ * Connects both legacy pg pool (for existing controllers) and Prisma
  */
 const initializeServices = async (): Promise<void> => {
     try {
+        // Legacy pg pool — used by existing controllers until services layer migration (Phase 0B)
         await connectToDatabase();
+        // Prisma — used by new services
+        await prisma.$connect();
         console.log('🚀 All services initialized successfully');
     } catch (error) {
         console.error('❌ Failed to initialize services:', error);
@@ -32,7 +36,6 @@ const startServer = async (): Promise<Server> => {
     const server: Server = app.listen(PORT, () => {
         console.log(`✅ TCSS-460-auth-squared is running at http://localhost:${PORT}`);
         console.log(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
-        console.log(`📖 Educational Documentation available at http://localhost:${PORT}/doc/`);
         console.log(`🔐 Admin routes available at http://localhost:${PORT}/admin/*`);
     });
 
@@ -52,8 +55,9 @@ const startServer = async (): Promise<Server> => {
                 });
             });
 
-            // Close database connection
+            // Close database connections
             await disconnectFromDatabase();
+            await prisma.$disconnect();
 
             console.log('✅ Graceful shutdown completed');
             process.exit(0);

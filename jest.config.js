@@ -13,11 +13,7 @@ module.exports = {
         '!src/index.ts',  // Don't test the main server file
         '!src/**/*.test.ts',
         '!src/**/*.spec.ts',
-    ],
-
-    // Transform ES modules from node_modules
-    transformIgnorePatterns: [
-        'node_modules/(?!(marked|highlight.js)/)',
+        '!src/generated/**',  // Don't test Prisma generated code
     ],
 
     // Handle your TypeScript path mappings
@@ -27,7 +23,7 @@ module.exports = {
         '^@utilities$': '<rootDir>/src/core/utilities/index',
         '^@middleware$': '<rootDir>/src/core/middleware/index',
         '^@models$': '<rootDir>/src/core/models/index',
-        '^@db$': '<rootDir>/src/core/utilities/sql_conn',
+        '^@lib/(.*)$': '<rootDir>/src/lib/$1',
         '^@auth$': '<rootDir>/src/core/utilities/credentialingUtils',
     },
 
