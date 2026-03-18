@@ -1,14 +1,38 @@
 services:
-    db:
-        image: postgres:latest
-        ports:
-            - 5432:5432
-        restart: always
-        environment:
-            POSTGRES_PASSWORD: ads123
-            POSTGRES_USER: tcss460
-            POSTGRES_DB: auth-squared
-        container_name: auth-squared-db
-        volumes:
-            - ~/apps/postgres:/var/lib/postgresql/data
-            - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: auth_squared
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_squared"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://auth_user:auth_pass@postgres:5432/auth_squared
+      JWT_SECRET: dev-secret-change-in-production
+      NODE_ENV: development
+      PORT: "8000"
+      SEND_EMAILS: "false"
+      EMAIL_USER: "test@example.com"
+      EMAIL_PASSWORD: "test"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run local
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  postgres_data:
