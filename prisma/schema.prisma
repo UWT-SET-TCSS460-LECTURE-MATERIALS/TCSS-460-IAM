@@ -31,6 +31,9 @@ model Account {
   credential         AccountCredential?
   emailVerifications EmailVerification[]
   phoneVerifications PhoneVerification[]
+  tenantMemberships  TenantMembership[]
+  authorizationCodes OAuthAuthorizationCode[]
+  refreshTokens      OAuthRefreshToken[]
 
   @@index([email], map: "idx_account_email")
   @@index([phone], map: "idx_account_phone")
@@ -83,4 +86,85 @@ model PhoneVerification {
   @@index([verificationCode], map: "idx_phone_verification_code")
   @@index([codeExpires], map: "idx_phone_verification_expires")
   @@map("phone_verification")
+}
+
+// ============================================================
+// OAuth2 + Multi-Tenancy Tables
+// ============================================================
+
+model Tenant {
+  tenantId      String   @id @map("tenant_id") @db.VarChar(255)
+  tenantName    String   @map("tenant_name") @db.VarChar(255)
+  description   String?
+  isActive      Boolean  @default(true) @map("is_active")
+  autoProvision Boolean  @default(true) @map("auto_provision")
+  defaultRole   Int      @default(1) @map("default_role")
+  brandingName  String?  @map("branding_name") @db.VarChar(255)
+  brandingColor String?  @map("branding_color") @db.VarChar(7)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  memberships TenantMembership[]
+  clients     OAuthClient[]
+
+  @@map("tenant")
+}
+
+model TenantMembership {
+  membershipId Int      @id @default(autoincrement()) @map("membership_id")
+  accountId    Int      @map("account_id")
+  tenantId     String   @map("tenant_id") @db.VarChar(255)
+  role         Int      @default(1)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [tenantId])
+
+  @@unique([accountId, tenantId])
+  @@map("tenant_membership")
+}
+
+model OAuthClient {
+  clientId     String   @id @map("client_id") @db.VarChar(255)
+  clientSecret String   @map("client_secret") @db.VarChar(255)
+  clientName   String   @map("client_name") @db.VarChar(255)
+  tenantId     String   @map("tenant_id") @db.VarChar(255)
+  redirectUris String[] @map("redirect_uris")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tenant             Tenant                   @relation(fields: [tenantId], references: [tenantId])
+  authorizationCodes OAuthAuthorizationCode[]
+  refreshTokens      OAuthRefreshToken[]
+
+  @@map("oauth_client")
+}
+
+model OAuthAuthorizationCode {
+  code                String   @id @db.VarChar(255)
+  clientId            String   @map("client_id") @db.VarChar(255)
+  accountId           Int      @map("account_id")
+  redirectUri         String   @map("redirect_uri") @db.VarChar(512)
+  codeChallenge       String?  @map("code_challenge") @db.VarChar(128)
+  codeChallengeMethod String?  @map("code_challenge_method") @db.VarChar(10)
+  expiresAt           DateTime @map("expires_at")
+  used                Boolean  @default(false)
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  client  OAuthClient @relation(fields: [clientId], references: [clientId])
+  account Account     @relation(fields: [accountId], references: [accountId])
+
+  @@map("oauth_authorization_code")
+}
+
+model OAuthRefreshToken {
+  token     String   @id @db.VarChar(255)
+  accountId Int      @map("account_id")
+  clientId  String   @map("client_id") @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  account Account     @relation(fields: [accountId], references: [accountId])
+  client  OAuthClient @relation(fields: [clientId], references: [clientId])
+
+  @@map("oauth_refresh_token")
 }

@@ -4,7 +4,17 @@
 import { Request } from 'express';
 
 // Re-export Prisma-generated types for convenience
-export type { Account, AccountCredential, EmailVerification, PhoneVerification } from '../../generated/prisma/client';
+export type {
+    Account,
+    AccountCredential,
+    EmailVerification,
+    PhoneVerification,
+    Tenant,
+    TenantMembership,
+    OAuthClient,
+    OAuthAuthorizationCode,
+    OAuthRefreshToken,
+} from '../../generated/prisma/client';
 
 /**
  * User role enumeration

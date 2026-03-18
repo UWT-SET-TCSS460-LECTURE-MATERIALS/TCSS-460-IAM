@@ -124,6 +124,108 @@ async function main() {
     });
     console.log(`  Created pending user: ${pending.email} (status: ${pending.accountStatus})`);
 
+    // ============================================================
+    // Tenant + OAuth Client Seed Data
+    // ============================================================
+
+    // Create TCSS 460 Spring 2026 tenant
+    const tcss460Tenant = await prisma.tenant.upsert({
+        where: { tenantId: 'tcss460-sp26' },
+        update: {},
+        create: {
+            tenantId: 'tcss460-sp26',
+            tenantName: 'TCSS 460 Spring 2026',
+            description: 'Client/Server Programming course project',
+            isActive: true,
+            autoProvision: true,
+            defaultRole: 1,
+            brandingName: 'TCSS 460 Spring 2026',
+            brandingColor: '#4B2E83', // UW purple
+        },
+    });
+    console.log(`  Created tenant: ${tcss460Tenant.tenantId}`);
+
+    // Create AI Tutor tenant
+    const aiTutorTenant = await prisma.tenant.upsert({
+        where: { tenantId: 'ai-tutor' },
+        update: {},
+        create: {
+            tenantId: 'ai-tutor',
+            tenantName: 'AI Tutor',
+            description: 'AI tutoring system',
+            isActive: true,
+            autoProvision: false, // invite-only
+            defaultRole: 1,
+            brandingName: 'AI Tutor',
+            brandingColor: '#198754', // green
+        },
+    });
+    console.log(`  Created tenant: ${aiTutorTenant.tenantId}`);
+
+    // Create shared dev OAuth client for TCSS 460
+    const devClientSecret = crypto.randomBytes(32).toString('hex');
+    await prisma.oAuthClient.upsert({
+        where: { clientId: 'tcss460-dev-shared' },
+        update: {},
+        create: {
+            clientId: 'tcss460-dev-shared',
+            clientSecret: devClientSecret,
+            clientName: 'TCSS 460 Dev (Shared)',
+            tenantId: 'tcss460-sp26',
+            redirectUris: [
+                'http://localhost:3000/api/auth/callback/tcss460',
+                'http://localhost:3000/auth/callback',
+            ],
+        },
+    });
+    console.log(`  Created OAuth client: tcss460-dev-shared (secret: ${devClientSecret.substring(0, 8)}...)`);
+
+    // Create AI Tutor OAuth client
+    const aiTutorClientSecret = crypto.randomBytes(32).toString('hex');
+    await prisma.oAuthClient.upsert({
+        where: { clientId: 'ai-tutor-app' },
+        update: {},
+        create: {
+            clientId: 'ai-tutor-app',
+            clientSecret: aiTutorClientSecret,
+            clientName: 'AI Tutor Application',
+            tenantId: 'ai-tutor',
+            redirectUris: [
+                'http://localhost:3001/api/auth/callback/tcss460',
+            ],
+        },
+    });
+    console.log(`  Created OAuth client: ai-tutor-app (secret: ${aiTutorClientSecret.substring(0, 8)}...)`);
+
+    // Create tenant memberships for seed accounts
+    // Owner gets Owner role in both tenants
+    await prisma.tenantMembership.upsert({
+        where: { accountId_tenantId: { accountId: owner.accountId, tenantId: 'tcss460-sp26' } },
+        update: {},
+        create: { accountId: owner.accountId, tenantId: 'tcss460-sp26', role: 5 },
+    });
+    await prisma.tenantMembership.upsert({
+        where: { accountId_tenantId: { accountId: owner.accountId, tenantId: 'ai-tutor' } },
+        update: {},
+        create: { accountId: owner.accountId, tenantId: 'ai-tutor', role: 5 },
+    });
+
+    // Admin gets Admin role in TCSS 460
+    await prisma.tenantMembership.upsert({
+        where: { accountId_tenantId: { accountId: admin.accountId, tenantId: 'tcss460-sp26' } },
+        update: {},
+        create: { accountId: admin.accountId, tenantId: 'tcss460-sp26', role: 3 },
+    });
+
+    // Test user gets User role in TCSS 460
+    await prisma.tenantMembership.upsert({
+        where: { accountId_tenantId: { accountId: user.accountId, tenantId: 'tcss460-sp26' } },
+        update: {},
+        create: { accountId: user.accountId, tenantId: 'tcss460-sp26', role: 1 },
+    });
+
+    console.log('  Created tenant memberships for seed accounts');
+
     console.log('Seeding complete!');
 }
 
