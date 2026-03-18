@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { openRoutes } from './open';
 import { closedRoutes } from './closed';
 import { adminRoutes } from '@routes/admin';
+import { oauthRoutes } from './oauth';
 
 const routes = Router();
 
@@ -11,5 +12,7 @@ routes.use('', openRoutes);
 routes.use('', closedRoutes);
 
 routes.use('/admin', adminRoutes);
+
+routes.use('/oauth', oauthRoutes);
 
 export { routes };
