@@ -3,3 +3,4 @@ export { adminService } from './admin.service';
 export { verificationService } from './verification.service';
 export { oauthService } from './oauth.service';
 export { tenantAdminService } from './tenantAdmin.service';
+export { accountService } from './account.service';
