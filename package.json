@@ -19,7 +19,7 @@
         "test:coverage": "jest --coverage",
         "format:check": "prettier --check .",
         "format:write": "prettier --write .",
-        "deploy": "git add . && git commit -m Heroku && git push heroku master"
+        "deploy": "git add . && git commit -m Deploy && git push origin main"
     },
     "keywords": [
         "authentication",
@@ -62,13 +62,10 @@
         "typescript": "^5.7.2"
     },
     "dependencies": {
-        "@types/marked": "^5.0.2",
         "cors": "^2.8.5",
         "express": "^5.1.0",
         "express-validator": "^7.2.1",
-        "highlight.js": "^11.11.1",
         "jsonwebtoken": "^9.0.2",
-        "marked": "^16.4.0",
         "nodemailer": "^7.0.6",
         "pg": "^8.16.3",
         "swagger-ui-express": "^5.0.1",
