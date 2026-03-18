@@ -14,11 +14,15 @@ import {
     validateAdminUsersList
 } from '@middleware';
 import { tenantAdminRoutes } from './tenants';
+import { adminUiRoutes } from './ui';
 
 const adminRoutes = Router();
 
 // Mount tenant admin routes (requires Owner role — enforced within tenantAdminRoutes)
 adminRoutes.use('/tenants', tenantAdminRoutes);
+
+// Mount admin UI routes (requires session + Owner role — enforced within adminUiRoutes)
+adminRoutes.use('/ui', adminUiRoutes);
 
 // All admin routes require authentication and admin role
 adminRoutes.use(checkToken);
