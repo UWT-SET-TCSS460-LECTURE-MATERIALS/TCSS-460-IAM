@@ -1,6 +1,7 @@
 // src/controllers/oauthController.ts
 import { Request, Response } from 'express';
 import { oauthService } from '../services/oauth.service';
+import { authService } from '../services/auth.service';
 import { IJwtRequest } from '../core/models';
 import { verifyToken } from '../core/utilities/tokenUtils';
 
@@ -97,6 +98,136 @@ export class OAuthController {
         const code = await oauthService.createAuthorizationCode({
             clientId: client_id,
             accountId: authResult.data!.accountId,
+            redirectUri: redirect_uri,
+            codeChallenge: code_challenge || undefined,
+            codeChallengeMethod: code_challenge_method || undefined,
+        });
+
+        // Redirect back to client with authorization code
+        const redirectUrl = new URL(redirect_uri);
+        redirectUrl.searchParams.set('code', code);
+        if (state) redirectUrl.searchParams.set('state', state);
+
+        response.redirect(redirectUrl.toString());
+    }
+
+    /**
+     * GET /oauth/authorize/register — show registration page
+     */
+    static async registerPage(request: Request, response: Response): Promise<void> {
+        const { client_id, redirect_uri, state, code_challenge, code_challenge_method } = request.query;
+
+        // Validate client + redirect URI
+        const clientResult = await oauthService.validateClient(
+            client_id as string,
+            redirect_uri as string
+        );
+
+        if (!clientResult.success) {
+            response.status(clientResult.error!.status).render('oauth/error', {
+                error: clientResult.error!.error_description,
+                tenantName: 'Auth\u00B2',
+                tenantColor: '#0d6efd',
+            });
+            return;
+        }
+
+        const { tenant } = clientResult.data!;
+
+        response.render('oauth/register', {
+            title: `Create account for ${tenant.brandingName || tenant.tenantName}`,
+            tenantName: tenant.brandingName || tenant.tenantName,
+            tenantColor: tenant.brandingColor || '#0d6efd',
+            clientId: client_id,
+            redirectUri: redirect_uri,
+            state,
+            codeChallenge: code_challenge || '',
+            codeChallengeMethod: code_challenge_method || '',
+            error: null,
+        });
+    }
+
+    /**
+     * POST /oauth/authorize/register — handle registration form submission
+     */
+    static async registerSubmit(request: Request, response: Response): Promise<void> {
+        const {
+            firstname, lastname, email, username, phone,
+            password, confirmPassword,
+            client_id, redirect_uri, state, code_challenge, code_challenge_method,
+        } = request.body;
+
+        // Re-validate client
+        const clientResult = await oauthService.validateClient(client_id, redirect_uri);
+        if (!clientResult.success) {
+            response.status(clientResult.error!.status).render('oauth/error', {
+                error: clientResult.error!.error_description,
+                tenantName: 'Auth\u00B2',
+                tenantColor: '#0d6efd',
+            });
+            return;
+        }
+
+        const { tenant } = clientResult.data!;
+        const renderError = (error: string) => {
+            response.render('oauth/register', {
+                title: `Create account for ${tenant.brandingName || tenant.tenantName}`,
+                tenantName: tenant.brandingName || tenant.tenantName,
+                tenantColor: tenant.brandingColor || '#0d6efd',
+                clientId: client_id,
+                redirectUri: redirect_uri,
+                state,
+                codeChallenge: code_challenge || '',
+                codeChallengeMethod: code_challenge_method || '',
+                error,
+                firstname,
+                lastname,
+                email,
+                username,
+                phone,
+            });
+        };
+
+        // Validate required fields
+        if (!firstname || !lastname || !email || !username || !phone || !password || !confirmPassword) {
+            renderError('All fields are required');
+            return;
+        }
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            renderError('Passwords do not match');
+            return;
+        }
+
+        // Register the account via auth service
+        const registerResult = await authService.register({
+            firstname,
+            lastname,
+            email,
+            password,
+            username,
+            phone,
+        });
+
+        if (!registerResult.success) {
+            renderError(registerResult.error!.message);
+            return;
+        }
+
+        const accountId = registerResult.data!.user.id;
+
+        // Ensure tenant membership (auto-provision)
+        const membershipResult = await oauthService.ensureTenantMembership(accountId, tenant.tenantId);
+        if (!membershipResult.success) {
+            renderError(membershipResult.error!.error_description);
+            return;
+        }
+
+        // Create authorization code
+        const code = await oauthService.createAuthorizationCode({
+            clientId: client_id,
+            accountId,
             redirectUri: redirect_uri,
             codeChallenge: code_challenge || undefined,
             codeChallengeMethod: code_challenge_method || undefined,

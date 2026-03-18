@@ -9,6 +9,10 @@ const oauthRoutes: Router = Router();
 oauthRoutes.get('/authorize', OAuthController.authorize);
 oauthRoutes.post('/authorize', OAuthController.authorizeSubmit);
 
+// Registration endpoint — serves register page and handles form submission
+oauthRoutes.get('/authorize/register', OAuthController.registerPage);
+oauthRoutes.post('/authorize/register', OAuthController.registerSubmit);
+
 // Token endpoint — exchanges code/refresh token for access token
 oauthRoutes.post('/token', OAuthController.token);
 
