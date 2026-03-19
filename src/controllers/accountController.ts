@@ -1,9 +1,12 @@
 // src/controllers/accountController.ts
 import { Request, Response } from 'express';
-import { IJwtRequest } from '@models';
+import { JwtRequest } from '@models';
 import { authService } from '../services/auth.service';
 import { accountService } from '../services/account.service';
-import { generatePasswordResetToken, verifyToken } from '../core/utilities/tokenUtils';
+import {
+    generatePasswordResetToken,
+    verifyToken,
+} from '../core/utilities/tokenUtils';
 import { sendEmail } from '../core/utilities/emailService';
 import { getEnvVar } from '../core/utilities/envConfig';
 
@@ -23,7 +26,10 @@ export const getForgotPassword = (req: Request, res: Response): void => {
  * Handle forgot password form submission.
  * Always shows success to prevent email enumeration.
  */
-export const postForgotPassword = async (req: Request, res: Response): Promise<void> => {
+export const postForgotPassword = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     const { email } = req.body;
 
     if (!email) {
@@ -38,8 +44,14 @@ export const postForgotPassword = async (req: Request, res: Response): Promise<v
         const account = await authService.findAccountForReset(email);
 
         if (account) {
-            const resetToken = generatePasswordResetToken(account.accountId, email);
-            const baseUrl = getEnvVar('BASE_URL', `http://localhost:${getEnvVar('PORT', '5500')}`);
+            const resetToken = generatePasswordResetToken(
+                account.accountId,
+                email
+            );
+            const baseUrl = getEnvVar(
+                'BASE_URL',
+                `http://localhost:${getEnvVar('PORT', '5500')}`
+            );
             const resetUrl = `${baseUrl}/account/reset-password?token=${resetToken}`;
 
             try {
@@ -56,7 +68,10 @@ export const postForgotPassword = async (req: Request, res: Response): Promise<v
         // Always show success to prevent email enumeration
         res.render('account/forgot-password', {
             title: 'Forgot Password - Auth\u00B2',
-            flash: { success: 'If an account with that email exists, a password reset link has been sent.' },
+            flash: {
+                success:
+                    'If an account with that email exists, a password reset link has been sent.',
+            },
         });
     } catch (err) {
         console.error('Forgot password error:', err);
@@ -90,7 +105,9 @@ export const getResetPassword = (req: Request, res: Response): void => {
         res.render('account/reset-password', {
             title: 'Reset Password - Auth\u00B2',
             token: '',
-            flash: { error: 'This reset link has expired. Please request a new one.' },
+            flash: {
+                error: 'This reset link has expired. Please request a new one.',
+            },
         });
         return;
     }
@@ -106,7 +123,10 @@ export const getResetPassword = (req: Request, res: Response): void => {
  * POST /account/reset-password
  * Handle reset password form submission.
  */
-export const postResetPassword = async (req: Request, res: Response): Promise<void> => {
+export const postResetPassword = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     const { token, password, confirmPassword } = req.body;
 
     if (!token) {
@@ -146,7 +166,11 @@ export const postResetPassword = async (req: Request, res: Response): Promise<vo
     }
 
     try {
-        const decoded = verifyToken<{ id: number; email: string; type: string }>(token);
+        const decoded = verifyToken<{
+            id: number;
+            email: string;
+            type: string;
+        }>(token);
 
         if (decoded.type !== 'password_reset') {
             res.render('account/reset-password', {
@@ -163,7 +187,9 @@ export const postResetPassword = async (req: Request, res: Response): Promise<vo
             res.render('account/reset-password', {
                 title: 'Reset Password - Auth\u00B2',
                 token,
-                flash: { error: result.error?.message || 'Failed to reset password.' },
+                flash: {
+                    error: result.error?.message || 'Failed to reset password.',
+                },
             });
             return;
         }
@@ -171,13 +197,18 @@ export const postResetPassword = async (req: Request, res: Response): Promise<vo
         res.render('account/reset-password', {
             title: 'Reset Password - Auth\u00B2',
             token: '',
-            flash: { success: 'Your password has been reset. You can now sign in with your new password.' },
+            flash: {
+                success:
+                    'Your password has been reset. You can now sign in with your new password.',
+            },
         });
     } catch {
         res.render('account/reset-password', {
             title: 'Reset Password - Auth\u00B2',
             token: '',
-            flash: { error: 'This reset link has expired. Please request a new one.' },
+            flash: {
+                error: 'This reset link has expired. Please request a new one.',
+            },
         });
     }
 };
@@ -186,7 +217,7 @@ export const postResetPassword = async (req: Request, res: Response): Promise<vo
  * GET /account/change-password
  * Render the change password form (session required).
  */
-export const getChangePassword = (req: IJwtRequest, res: Response): void => {
+export const getChangePassword = (req: JwtRequest, res: Response): void => {
     res.render('account/change-password', {
         title: 'Change Password - Auth\u00B2',
         flash: {},
@@ -197,7 +228,10 @@ export const getChangePassword = (req: IJwtRequest, res: Response): void => {
  * POST /account/change-password
  * Handle change password form submission (session required).
  */
-export const postChangePassword = async (req: IJwtRequest, res: Response): Promise<void> => {
+export const postChangePassword = async (
+    req: JwtRequest,
+    res: Response
+): Promise<void> => {
     const { oldPassword, newPassword, confirmPassword } = req.body;
     const userId = req.claims!.id;
 
@@ -226,12 +260,19 @@ export const postChangePassword = async (req: IJwtRequest, res: Response): Promi
     }
 
     try {
-        const result = await authService.changePassword(userId, oldPassword, newPassword);
+        const result = await authService.changePassword(
+            userId,
+            oldPassword,
+            newPassword
+        );
 
         if (!result.success) {
             res.render('account/change-password', {
                 title: 'Change Password - Auth\u00B2',
-                flash: { error: result.error?.message || 'Failed to change password.' },
+                flash: {
+                    error:
+                        result.error?.message || 'Failed to change password.',
+                },
             });
             return;
         }
@@ -253,7 +294,10 @@ export const postChangePassword = async (req: IJwtRequest, res: Response): Promi
  * GET /account/profile
  * Render profile page with tenant memberships (session required).
  */
-export const getProfile = async (req: IJwtRequest, res: Response): Promise<void> => {
+export const getProfile = async (
+    req: JwtRequest,
+    res: Response
+): Promise<void> => {
     const userId = req.claims!.id;
 
     try {
@@ -263,7 +307,9 @@ export const getProfile = async (req: IJwtRequest, res: Response): Promise<void>
             res.render('account/profile', {
                 title: 'Profile - Auth\u00B2',
                 profile: null,
-                flash: { error: result.error?.message || 'Failed to load profile.' },
+                flash: {
+                    error: result.error?.message || 'Failed to load profile.',
+                },
             });
             return;
         }
@@ -287,7 +333,7 @@ export const getProfile = async (req: IJwtRequest, res: Response): Promise<void>
  * GET /account/delete
  * Render delete confirmation page (session required).
  */
-export const getDelete = (req: IJwtRequest, res: Response): void => {
+export const getDelete = (req: JwtRequest, res: Response): void => {
     res.render('account/delete', {
         title: 'Delete Account - Auth\u00B2',
         flash: {},
@@ -299,7 +345,10 @@ export const getDelete = (req: IJwtRequest, res: Response): void => {
  * Handle account deletion (session required).
  * Verifies password, soft deletes, clears session cookie, redirects.
  */
-export const postDelete = async (req: IJwtRequest, res: Response): Promise<void> => {
+export const postDelete = async (
+    req: JwtRequest,
+    res: Response
+): Promise<void> => {
     const { password } = req.body;
     const userId = req.claims!.id;
 
@@ -317,7 +366,9 @@ export const postDelete = async (req: IJwtRequest, res: Response): Promise<void>
         if (!result.success) {
             res.render('account/delete', {
                 title: 'Delete Account - Auth\u00B2',
-                flash: { error: result.error?.message || 'Failed to delete account.' },
+                flash: {
+                    error: result.error?.message || 'Failed to delete account.',
+                },
             });
             return;
         }

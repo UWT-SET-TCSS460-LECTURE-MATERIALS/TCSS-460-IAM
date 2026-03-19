@@ -1,6 +1,6 @@
 // src/core/middleware/adminAuth.ts
 import { Response, NextFunction } from 'express';
-import { IJwtRequest, UserRole } from '@models';
+import { JwtRequest, UserRole } from '@models';
 import { sendError, ErrorCodes } from '@utilities';
 import { prisma } from '../../lib/prisma';
 
@@ -9,17 +9,27 @@ import { prisma } from '../../lib/prisma';
  * Requires checkToken middleware to run first
  */
 export const requireAdmin = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
     if (!request.claims) {
-        sendError(response, 401, 'Authentication required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            401,
+            'Authentication required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
     if (request.claims.role < UserRole.ADMIN) {
-        sendError(response, 403, 'Admin access required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Admin access required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -30,17 +40,27 @@ export const requireAdmin = (
  * Middleware to check if user has super admin privileges
  */
 export const requireSuperAdmin = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
     if (!request.claims) {
-        sendError(response, 401, 'Authentication required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            401,
+            'Authentication required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
     if (request.claims.role < UserRole.SUPER_ADMIN) {
-        sendError(response, 403, 'Super Admin access required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Super Admin access required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -51,17 +71,27 @@ export const requireSuperAdmin = (
  * Middleware to check if user is owner
  */
 export const requireOwner = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
     if (!request.claims) {
-        sendError(response, 401, 'Authentication required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            401,
+            'Authentication required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
     if (request.claims.role !== UserRole.OWNER) {
-        sendError(response, 403, 'Owner access required', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Owner access required',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -72,7 +102,7 @@ export const requireOwner = (
  * Middleware to check if user can modify target user based on role hierarchy
  */
 export const checkRoleHierarchy = async (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
@@ -81,12 +111,22 @@ export const checkRoleHierarchy = async (
     const adminId = request.claims.id;
 
     if (isNaN(targetUserId)) {
-        sendError(response, 400, 'Invalid user ID', ErrorCodes.VALD_MISSING_FIELDS);
+        sendError(
+            response,
+            400,
+            'Invalid user ID',
+            ErrorCodes.VALD_MISSING_FIELDS
+        );
         return;
     }
 
     if (request.method === 'DELETE' && targetUserId === adminId) {
-        sendError(response, 400, 'Cannot delete your own account', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            400,
+            'Cannot delete your own account',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -97,13 +137,23 @@ export const checkRoleHierarchy = async (
         });
 
         if (!targetUser) {
-            sendError(response, 404, 'User not found', ErrorCodes.USER_NOT_FOUND);
+            sendError(
+                response,
+                404,
+                'User not found',
+                ErrorCodes.USER_NOT_FOUND
+            );
             return;
         }
 
         if (adminRole <= targetUser.accountRole) {
             const action = request.method === 'DELETE' ? 'delete' : 'modify';
-            sendError(response, 403, `Cannot ${action} user with equal or higher role`, ErrorCodes.AUTH_UNAUTHORIZED);
+            sendError(
+                response,
+                403,
+                `Cannot ${action} user with equal or higher role`,
+                ErrorCodes.AUTH_UNAUTHORIZED
+            );
             return;
         }
 
@@ -111,7 +161,12 @@ export const checkRoleHierarchy = async (
         next();
     } catch (error) {
         console.error('Error checking role hierarchy:', error);
-        sendError(response, 500, 'Server error', ErrorCodes.SRVR_DATABASE_ERROR);
+        sendError(
+            response,
+            500,
+            'Server error',
+            ErrorCodes.SRVR_DATABASE_ERROR
+        );
     }
 };
 
@@ -119,7 +174,7 @@ export const checkRoleHierarchy = async (
  * Middleware to validate role creation permissions
  */
 export const validateRoleCreation = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
@@ -127,12 +182,22 @@ export const validateRoleCreation = (
     const newUserRole = parseInt(request.body.role);
 
     if (isNaN(newUserRole) || newUserRole < 1 || newUserRole > 5) {
-        sendError(response, 400, 'Invalid role. Must be between 1-5', ErrorCodes.VALD_INVALID_ROLE);
+        sendError(
+            response,
+            400,
+            'Invalid role. Must be between 1-5',
+            ErrorCodes.VALD_INVALID_ROLE
+        );
         return;
     }
 
     if (newUserRole > adminRole) {
-        sendError(response, 403, 'Cannot create user with higher role than your own', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Cannot create user with higher role than your own',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -143,7 +208,7 @@ export const validateRoleCreation = (
  * Middleware to check if user can perform role assignment
  */
 export const validateRoleAssignment = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
@@ -156,12 +221,22 @@ export const validateRoleAssignment = (
     }
 
     if (isNaN(assignedRole) || assignedRole < 1 || assignedRole > 5) {
-        sendError(response, 400, 'Invalid role. Must be between 1-5', ErrorCodes.VALD_INVALID_ROLE);
+        sendError(
+            response,
+            400,
+            'Invalid role. Must be between 1-5',
+            ErrorCodes.VALD_INVALID_ROLE
+        );
         return;
     }
 
     if (assignedRole >= adminRole) {
-        sendError(response, 403, 'Can only assign roles lower than your own', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Can only assign roles lower than your own',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -172,7 +247,7 @@ export const validateRoleAssignment = (
  * Check role hierarchy for role changes
  */
 export const checkRoleChangeHierarchy = async (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
@@ -182,17 +257,32 @@ export const checkRoleChangeHierarchy = async (
     const newRole = parseInt(request.body.role);
 
     if (isNaN(targetUserId) || isNaN(newRole)) {
-        sendError(response, 400, 'Invalid user ID or role', ErrorCodes.VALD_MISSING_FIELDS);
+        sendError(
+            response,
+            400,
+            'Invalid user ID or role',
+            ErrorCodes.VALD_MISSING_FIELDS
+        );
         return;
     }
 
     if (targetUserId === adminId) {
-        sendError(response, 400, 'Cannot change your own role', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            400,
+            'Cannot change your own role',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
     if (newRole > adminRole) {
-        sendError(response, 403, 'Cannot promote user to higher role than your own', ErrorCodes.AUTH_UNAUTHORIZED);
+        sendError(
+            response,
+            403,
+            'Cannot promote user to higher role than your own',
+            ErrorCodes.AUTH_UNAUTHORIZED
+        );
         return;
     }
 
@@ -203,24 +293,44 @@ export const checkRoleChangeHierarchy = async (
         });
 
         if (!targetUser) {
-            sendError(response, 404, 'User not found', ErrorCodes.USER_NOT_FOUND);
+            sendError(
+                response,
+                404,
+                'User not found',
+                ErrorCodes.USER_NOT_FOUND
+            );
             return;
         }
 
         if (targetUser.accountRole >= adminRole) {
-            sendError(response, 403, 'Cannot change role of user with equal or higher role', ErrorCodes.AUTH_UNAUTHORIZED);
+            sendError(
+                response,
+                403,
+                'Cannot change role of user with equal or higher role',
+                ErrorCodes.AUTH_UNAUTHORIZED
+            );
             return;
         }
 
         if (adminRole === 3 && newRole > 3) {
-            sendError(response, 403, 'Admins can only assign roles up to admin level', ErrorCodes.AUTH_UNAUTHORIZED);
+            sendError(
+                response,
+                403,
+                'Admins can only assign roles up to admin level',
+                ErrorCodes.AUTH_UNAUTHORIZED
+            );
             return;
         }
 
         next();
     } catch (error) {
         console.error('Role change hierarchy check error:', error);
-        sendError(response, 500, 'Server error during authorization check', ErrorCodes.SRVR_DATABASE_ERROR);
+        sendError(
+            response,
+            500,
+            'Server error during authorization check',
+            ErrorCodes.SRVR_DATABASE_ERROR
+        );
     }
 };
 

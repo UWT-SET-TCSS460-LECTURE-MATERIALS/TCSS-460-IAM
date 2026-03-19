@@ -1,19 +1,19 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { IJwtRequest, IJwtClaims } from '@models';
+import { JwtRequest, JwtClaims } from '@models';
 import { getEnvVar } from '@utilities';
 
 /**
  * Extract and verify JWT from session cookie.
  * Returns decoded claims if valid, null otherwise.
  */
-function extractSessionClaims(request: IJwtRequest): IJwtClaims | null {
+function extractSessionClaims(request: JwtRequest): JwtClaims | null {
     const token = request.cookies?.session;
     if (!token) return null;
 
     try {
-        const decoded = jwt.verify(token, getEnvVar('JWT_SECRET')) as IJwtClaims;
+        const decoded = jwt.verify(token, getEnvVar('JWT_SECRET')) as JwtClaims;
         return decoded;
     } catch {
         return null;
@@ -26,14 +26,21 @@ function extractSessionClaims(request: IJwtRequest): IJwtClaims | null {
  * Otherwise returns a 401 JSON response.
  */
 export const requireSession = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
     const claims = extractSessionClaims(request);
     if (!claims) {
         if (request.accepts('html')) {
-            response.redirect('/oauth/authorize?error=session_expired');
+            // Redirect to appropriate login page based on path
+            if (request.originalUrl.startsWith('/admin')) {
+                response.redirect('/admin/ui/login');
+            } else {
+                response.redirect(
+                    '/account/forgot-password?error=session_expired'
+                );
+            }
         } else {
             response.status(401).json({ error: 'Session required' });
         }
@@ -48,7 +55,7 @@ export const requireSession = (
  * Useful for pages that show different content for logged-in vs anonymous users.
  */
 export const optionalSession = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {

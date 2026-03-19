@@ -1,9 +1,9 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
 
-import { IJwtClaims, IJwtRequest } from '@models';
+import { JwtClaims, JwtRequest } from '@models';
 export const checkToken = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
@@ -17,17 +17,21 @@ export const checkToken = (
             token = token.slice(7, token.length);
         }
 
-        jwt.verify(token, process.env.JWT_SECRET, (error, decoded: JwtPayload) => {
-            if (error) {
-                response.status(403).json({
-                    success: false,
-                    message: 'Token is not valid',
-                });
-            } else {
-                request.claims = decoded as IJwtClaims;
-                next();
+        jwt.verify(
+            token,
+            process.env.JWT_SECRET,
+            (error, decoded: JwtPayload) => {
+                if (error) {
+                    response.status(403).json({
+                        success: false,
+                        message: 'Token is not valid',
+                    });
+                } else {
+                    request.claims = decoded as JwtClaims;
+                    next();
+                }
             }
-        });
+        );
     } else {
         response.status(401).json({
             success: false,

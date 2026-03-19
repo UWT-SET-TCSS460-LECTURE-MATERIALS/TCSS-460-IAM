@@ -2,15 +2,25 @@
 import { Request, Response } from 'express';
 import { oauthService } from '../services/oauth.service';
 import { authService } from '../services/auth.service';
-import { IJwtRequest } from '../core/models';
+import { JwtRequest } from '../core/models';
 import { verifyToken } from '../core/utilities/tokenUtils';
 
 export class OAuthController {
     /**
      * GET /oauth/authorize — show login page or handle redirect
      */
-    static async authorize(request: Request, response: Response): Promise<void> {
-        const { client_id, redirect_uri, response_type, state, code_challenge, code_challenge_method } = request.query;
+    static async authorize(
+        request: Request,
+        response: Response
+    ): Promise<void> {
+        const {
+            client_id,
+            redirect_uri,
+            response_type,
+            state,
+            code_challenge,
+            code_challenge_method,
+        } = request.query;
 
         // Validate client + redirect URI
         const clientResult = await oauthService.validateClient(
@@ -47,11 +57,25 @@ export class OAuthController {
     /**
      * POST /oauth/authorize — handle login form submission
      */
-    static async authorizeSubmit(request: Request, response: Response): Promise<void> {
-        const { email, password, client_id, redirect_uri, state, code_challenge, code_challenge_method } = request.body;
+    static async authorizeSubmit(
+        request: Request,
+        response: Response
+    ): Promise<void> {
+        const {
+            email,
+            password,
+            client_id,
+            redirect_uri,
+            state,
+            code_challenge,
+            code_challenge_method,
+        } = request.body;
 
         // Re-validate client (security: don't trust hidden form fields blindly)
-        const clientResult = await oauthService.validateClient(client_id, redirect_uri);
+        const clientResult = await oauthService.validateClient(
+            client_id,
+            redirect_uri
+        );
         if (!clientResult.success) {
             response.status(clientResult.error!.status).render('oauth/error', {
                 error: clientResult.error!.error_description,
@@ -78,7 +102,10 @@ export class OAuthController {
         };
 
         // Authenticate user
-        const authResult = await oauthService.authenticateForOAuth(email, password);
+        const authResult = await oauthService.authenticateForOAuth(
+            email,
+            password
+        );
         if (!authResult.success) {
             renderError(authResult.error!.error_description);
             return;
@@ -114,8 +141,17 @@ export class OAuthController {
     /**
      * GET /oauth/authorize/register — show registration page
      */
-    static async registerPage(request: Request, response: Response): Promise<void> {
-        const { client_id, redirect_uri, state, code_challenge, code_challenge_method } = request.query;
+    static async registerPage(
+        request: Request,
+        response: Response
+    ): Promise<void> {
+        const {
+            client_id,
+            redirect_uri,
+            state,
+            code_challenge,
+            code_challenge_method,
+        } = request.query;
 
         // Validate client + redirect URI
         const clientResult = await oauthService.validateClient(
@@ -150,15 +186,30 @@ export class OAuthController {
     /**
      * POST /oauth/authorize/register — handle registration form submission
      */
-    static async registerSubmit(request: Request, response: Response): Promise<void> {
+    static async registerSubmit(
+        request: Request,
+        response: Response
+    ): Promise<void> {
         const {
-            firstname, lastname, email, username, phone,
-            password, confirmPassword,
-            client_id, redirect_uri, state, code_challenge, code_challenge_method,
+            firstname,
+            lastname,
+            email,
+            username,
+            phone,
+            password,
+            confirmPassword,
+            client_id,
+            redirect_uri,
+            state,
+            code_challenge,
+            code_challenge_method,
         } = request.body;
 
         // Re-validate client
-        const clientResult = await oauthService.validateClient(client_id, redirect_uri);
+        const clientResult = await oauthService.validateClient(
+            client_id,
+            redirect_uri
+        );
         if (!clientResult.success) {
             response.status(clientResult.error!.status).render('oauth/error', {
                 error: clientResult.error!.error_description,
@@ -189,7 +240,15 @@ export class OAuthController {
         };
 
         // Validate required fields
-        if (!firstname || !lastname || !email || !username || !phone || !password || !confirmPassword) {
+        if (
+            !firstname ||
+            !lastname ||
+            !email ||
+            !username ||
+            !phone ||
+            !password ||
+            !confirmPassword
+        ) {
             renderError('All fields are required');
             return;
         }
@@ -218,7 +277,10 @@ export class OAuthController {
         const accountId = registerResult.data!.user.id;
 
         // Ensure tenant membership (auto-provision)
-        const membershipResult = await oauthService.ensureTenantMembership(accountId, tenant.tenantId);
+        const membershipResult = await oauthService.ensureTenantMembership(
+            accountId,
+            tenant.tenantId
+        );
         if (!membershipResult.success) {
             renderError(membershipResult.error!.error_description);
             return;
@@ -249,7 +311,13 @@ export class OAuthController {
 
         try {
             if (grant_type === 'authorization_code') {
-                const { code, redirect_uri, client_id, client_secret, code_verifier } = request.body;
+                const {
+                    code,
+                    redirect_uri,
+                    client_id,
+                    client_secret,
+                    code_verifier,
+                } = request.body;
 
                 const result = await oauthService.exchangeAuthorizationCode({
                     code,
@@ -268,9 +336,9 @@ export class OAuthController {
                 }
 
                 response.json(result.data);
-
             } else if (grant_type === 'refresh_token') {
-                const { refresh_token, client_id, client_secret } = request.body;
+                const { refresh_token, client_id, client_secret } =
+                    request.body;
 
                 const result = await oauthService.refreshTokenGrant({
                     refreshToken: refresh_token,
@@ -287,11 +355,11 @@ export class OAuthController {
                 }
 
                 response.json(result.data);
-
             } else {
                 response.status(400).json({
                     error: 'unsupported_grant_type',
-                    error_description: 'Only authorization_code and refresh_token grant types are supported',
+                    error_description:
+                        'Only authorization_code and refresh_token grant types are supported',
                 });
             }
         } catch (error) {
@@ -306,15 +374,26 @@ export class OAuthController {
     /**
      * GET /oauth/userinfo — return user profile from access token
      */
-    static async userinfo(request: IJwtRequest, response: Response): Promise<void> {
+    static async userinfo(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
         if (!request.claims) {
-            response.status(401).json({ error: 'invalid_token', error_description: 'Access token required' });
+            response
+                .status(401)
+                .json({
+                    error: 'invalid_token',
+                    error_description: 'Access token required',
+                });
             return;
         }
 
         try {
             const claims = request.claims as any;
-            const result = await oauthService.getUserInfo(claims.id, claims.tenant);
+            const result = await oauthService.getUserInfo(
+                claims.id,
+                claims.tenant
+            );
 
             if (!result.success) {
                 response.status(result.error!.status).json({

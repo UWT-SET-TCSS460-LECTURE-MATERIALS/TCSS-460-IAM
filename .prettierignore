@@ -1,0 +1,7 @@
+dist/
+coverage/
+src/generated/
+node_modules/
+.claude/
+ai.prof/
+*.md

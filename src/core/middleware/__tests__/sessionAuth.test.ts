@@ -1,15 +1,20 @@
 import jwt from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
 import { requireSession, optionalSession } from '../sessionAuth';
-import { IJwtRequest, IJwtClaims, UserRole } from '@models';
+import { JwtRequest, JwtClaims, UserRole } from '@models';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test_secret_key';
 
-function createMockRequest(cookie?: string, acceptsHtml = true): IJwtRequest {
+function createMockRequest(
+    cookie?: string,
+    acceptsHtml = true,
+    originalUrl = '/account/profile'
+): JwtRequest {
     return {
         cookies: cookie !== undefined ? { session: cookie } : {},
         accepts: jest.fn().mockReturnValue(acceptsHtml ? 'html' : false),
-    } as unknown as IJwtRequest;
+        originalUrl,
+    } as unknown as JwtRequest;
 }
 
 function createMockResponse(): Response {
@@ -21,13 +26,17 @@ function createMockResponse(): Response {
     return res;
 }
 
-const validClaims: IJwtClaims = {
+const validClaims: JwtClaims = {
     id: 42,
     name: 'Test User',
     role: UserRole.USER,
 };
 
-function signToken(claims: object, secret = JWT_SECRET, expiresIn: number = 3600): string {
+function signToken(
+    claims: object,
+    secret = JWT_SECRET,
+    expiresIn: number = 3600
+): string {
     return jwt.sign(claims, secret, { expiresIn });
 }
 
@@ -52,13 +61,25 @@ describe('requireSession', () => {
         expect(next).toHaveBeenCalled();
     });
 
-    it('should redirect to login when no session cookie and request accepts HTML', () => {
-        const req = createMockRequest(undefined, true);
+    it('should redirect to forgot-password when no session cookie on account path', () => {
+        const req = createMockRequest(undefined, true, '/account/profile');
         const res = createMockResponse();
 
         requireSession(req, res, next);
 
-        expect(res.redirect).toHaveBeenCalledWith('/oauth/authorize?error=session_expired');
+        expect(res.redirect).toHaveBeenCalledWith(
+            '/account/forgot-password?error=session_expired'
+        );
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should redirect to admin login when no session cookie on admin path', () => {
+        const req = createMockRequest(undefined, true, '/admin/ui/dashboard');
+        const res = createMockResponse();
+
+        requireSession(req, res, next);
+
+        expect(res.redirect).toHaveBeenCalledWith('/admin/ui/login');
         expect(next).not.toHaveBeenCalled();
     });
 
@@ -74,12 +95,18 @@ describe('requireSession', () => {
     });
 
     it('should redirect when session cookie is an invalid token and request accepts HTML', () => {
-        const req = createMockRequest('invalid.token.here', true);
+        const req = createMockRequest(
+            'invalid.token.here',
+            true,
+            '/account/change-password'
+        );
         const res = createMockResponse();
 
         requireSession(req, res, next);
 
-        expect(res.redirect).toHaveBeenCalledWith('/oauth/authorize?error=session_expired');
+        expect(res.redirect).toHaveBeenCalledWith(
+            '/account/forgot-password?error=session_expired'
+        );
         expect(next).not.toHaveBeenCalled();
     });
 
@@ -107,7 +134,9 @@ describe('requireSession', () => {
     });
 
     it('should handle missing cookies object gracefully', () => {
-        const req = { accepts: jest.fn().mockReturnValue(false) } as unknown as IJwtRequest;
+        const req = {
+            accepts: jest.fn().mockReturnValue(false),
+        } as unknown as JwtRequest;
         const res = createMockResponse();
 
         requireSession(req, res, next);

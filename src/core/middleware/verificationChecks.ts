@@ -1,8 +1,8 @@
 import { NextFunction, Response } from 'express';
-import { IJwtRequest } from '@models';
+import { JwtRequest } from '@models';
 
 export const checkParamsIdToJwtId = (
-    request: IJwtRequest,
+    request: JwtRequest,
     response: Response,
     next: NextFunction
 ) => {
