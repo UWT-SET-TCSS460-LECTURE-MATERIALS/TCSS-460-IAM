@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  ESLINT_USE_FLAT_CONFIG: "false"
+
 jobs:
   lint:
     name: Lint & Format
@@ -37,7 +40,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run test:coverage
+      - run: npm test
 
   build:
     name: Build
