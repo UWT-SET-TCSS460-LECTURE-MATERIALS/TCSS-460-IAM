@@ -4,11 +4,10 @@ import {
     generateSaltedHash,
     verifyPassword,
     generateVerificationCode,
-    generateSecureToken
+    generateSecureToken,
 } from '../credentialingUtils';
 
 describe('credentialingUtils', () => {
-
     describe('generateSalt', () => {
         it('should generate a 64-character hex string', () => {
             const salt = generateSalt();
@@ -169,7 +168,8 @@ describe('credentialingUtils', () => {
             const password = 'testPassword';
             const salt = generateSalt();
             const hash = generateHash(password, salt);
-            const tamperedHash = hash.substring(0, 63) + (hash[63] === 'a' ? 'b' : 'a');
+            const tamperedHash =
+                hash.substring(0, 63) + (hash[63] === 'a' ? 'b' : 'a');
 
             const result = verifyPassword(password, salt, tamperedHash);
             expect(result).toBe(false);
@@ -179,7 +179,11 @@ describe('credentialingUtils', () => {
             const result1 = verifyPassword('', '', generateHash('', ''));
             expect(result1).toBe(true);
 
-            const result2 = verifyPassword('password', '', generateHash('password', ''));
+            const result2 = verifyPassword(
+                'password',
+                '',
+                generateHash('password', '')
+            );
             expect(result2).toBe(true);
         });
 
@@ -267,8 +271,8 @@ describe('credentialingUtils', () => {
             const token32 = generateSecureToken(32);
             const token64 = generateSecureToken(64);
 
-            expect(token16).toHaveLength(32);  // 16 bytes = 32 hex chars
-            expect(token32).toHaveLength(64);  // 32 bytes = 64 hex chars
+            expect(token16).toHaveLength(32); // 16 bytes = 32 hex chars
+            expect(token32).toHaveLength(64); // 32 bytes = 64 hex chars
             expect(token64).toHaveLength(128); // 64 bytes = 128 hex chars
         });
 
@@ -285,7 +289,9 @@ describe('credentialingUtils', () => {
 
         it('should only contain valid hex characters', () => {
             for (let i = 0; i < 10; i++) {
-                const token = generateSecureToken(Math.floor(Math.random() * 64) + 1);
+                const token = generateSecureToken(
+                    Math.floor(Math.random() * 64) + 1
+                );
                 expect(token).toMatch(/^[a-f0-9]+$/);
             }
         });
@@ -334,7 +340,7 @@ describe('credentialingUtils', () => {
                 '🔐 Unicode Password 密码',
                 '',
                 ' ',
-                'a'.repeat(500)
+                'a'.repeat(500),
             ];
 
             for (const password of passwords) {
@@ -347,7 +353,9 @@ describe('credentialingUtils', () => {
                 expect(verifyPassword(password + 'x', salt, hash)).toBe(false);
 
                 // Should fail with wrong salt
-                expect(verifyPassword(password, generateSalt(), hash)).toBe(false);
+                expect(verifyPassword(password, generateSalt(), hash)).toBe(
+                    false
+                );
             }
         });
 
@@ -356,7 +364,7 @@ describe('credentialingUtils', () => {
             const results = await Promise.all([
                 generateSaltedHash(password),
                 generateSaltedHash(password),
-                generateSaltedHash(password)
+                generateSaltedHash(password),
             ]);
 
             // All salts should be different

@@ -662,4 +662,119 @@ export const tenantAdminService = {
 
         return { success: true };
     },
+
+    /**
+     * Add a member by email address (human-friendly)
+     */
+    async addMemberByEmail(
+        tenantId: string,
+        email: string,
+        role: number
+    ): Promise<ServiceResult<any>> {
+        const account = await prisma.account.findUnique({
+            where: { email },
+            select: {
+                accountId: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+            },
+        });
+
+        if (!account) {
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: `No account found with email: ${email}`,
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
+        }
+
+        return this.addMember(tenantId, account.accountId, role);
+    },
+
+    /**
+     * Update account details (name, email, username)
+     */
+    async updateAccount(
+        accountId: number,
+        updates: {
+            firstName?: string;
+            lastName?: string;
+            email?: string;
+            username?: string;
+        }
+    ): Promise<ServiceResult<any>> {
+        const account = await prisma.account.findUnique({
+            where: { accountId },
+        });
+        if (!account) {
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
+        }
+
+        // Check uniqueness for email/username if changing
+        if (updates.email && updates.email !== account.email) {
+            const existing = await prisma.account.findUnique({
+                where: { email: updates.email },
+            });
+            if (existing) {
+                return {
+                    success: false,
+                    error: {
+                        status: 400,
+                        message: 'Email already in use',
+                        code: ErrorCodes.AUTH_EMAIL_EXISTS,
+                    },
+                };
+            }
+        }
+        if (updates.username && updates.username !== account.username) {
+            const existing = await prisma.account.findUnique({
+                where: { username: updates.username },
+            });
+            if (existing) {
+                return {
+                    success: false,
+                    error: {
+                        status: 400,
+                        message: 'Username already in use',
+                        code: ErrorCodes.AUTH_USERNAME_EXISTS,
+                    },
+                };
+            }
+        }
+
+        const data: any = { updatedAt: new Date() };
+        if (updates.firstName) data.firstName = updates.firstName;
+        if (updates.lastName) data.lastName = updates.lastName;
+        if (updates.email) data.email = updates.email;
+        if (updates.username) data.username = updates.username;
+
+        const updated = await prisma.account.update({
+            where: { accountId },
+            data,
+        });
+
+        return {
+            success: true,
+            data: {
+                account: {
+                    accountId: updated.accountId,
+                    firstName: updated.firstName,
+                    lastName: updated.lastName,
+                    email: updated.email,
+                    username: updated.username,
+                },
+            },
+        };
+    },
 };

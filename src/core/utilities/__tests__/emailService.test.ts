@@ -4,7 +4,7 @@ import {
     sendEmail,
     sendSMSViaEmail,
     sendVerificationEmail,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
 } from '../emailService';
 import * as envConfig from '../envConfig';
 
@@ -35,18 +35,20 @@ describe('emailService', () => {
         mockNodemailer.createTransport.mockReturnValue(mockTransporter);
 
         // Mock environment functions
-        mockEnvConfig.getEnvVar.mockImplementation((key: string, defaultValue?: string) => {
-            const envVars: { [key: string]: string } = {
-                'EMAIL_SERVICE': 'gmail',
-                'EMAIL_USER': 'test@example.com',
-                'EMAIL_PASSWORD': 'password123',
-                'EMAIL_FROM': 'Auth² Service <noreply@auth2.com>',
-                'SEND_EMAILS': 'false',
-                'SEND_SMS_EMAILS': 'false',
-                'DEFAULT_SMS_CARRIER': 'att',
-            };
-            return envVars[key] || defaultValue || '';
-        });
+        mockEnvConfig.getEnvVar.mockImplementation(
+            (key: string, defaultValue?: string) => {
+                const envVars: { [key: string]: string } = {
+                    EMAIL_SERVICE: 'gmail',
+                    EMAIL_USER: 'test@example.com',
+                    EMAIL_PASSWORD: 'password123',
+                    EMAIL_FROM: 'Auth² Service <noreply@auth2.com>',
+                    SEND_EMAILS: 'false',
+                    SEND_SMS_EMAILS: 'false',
+                    DEFAULT_SMS_CARRIER: 'att',
+                };
+                return envVars[key] || defaultValue || '';
+            }
+        );
 
         mockEnvConfig.isProduction.mockReturnValue(false);
 
@@ -78,7 +80,9 @@ describe('emailService', () => {
                 },
             });
 
-            expect(consoleSpy).toHaveBeenCalledWith('✅ Email service initialized successfully');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '✅ Email service initialized successfully'
+            );
         });
 
         it('should throw error when initialization fails', () => {
@@ -86,17 +90,24 @@ describe('emailService', () => {
                 throw new Error('Configuration error');
             });
 
-            expect(() => initializeEmailService()).toThrow('Configuration error');
-            expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Failed to initialize email service:', expect.any(Error));
+            expect(() => initializeEmailService()).toThrow(
+                'Configuration error'
+            );
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                '❌ Failed to initialize email service:',
+                expect.any(Error)
+            );
         });
 
         it('should use custom email service from environment', () => {
-            mockEnvConfig.getEnvVar.mockImplementation((key: string, defaultValue?: string) => {
-                if (key === 'EMAIL_SERVICE') return 'outlook';
-                if (key === 'EMAIL_USER') return 'test@outlook.com';
-                if (key === 'EMAIL_PASSWORD') return 'password456';
-                return defaultValue || '';
-            });
+            mockEnvConfig.getEnvVar.mockImplementation(
+                (key: string, defaultValue?: string) => {
+                    if (key === 'EMAIL_SERVICE') return 'outlook';
+                    if (key === 'EMAIL_USER') return 'test@outlook.com';
+                    if (key === 'EMAIL_PASSWORD') return 'password456';
+                    return defaultValue || '';
+                }
+            );
 
             initializeEmailService();
 
@@ -117,7 +128,9 @@ describe('emailService', () => {
 
         it('should send email in production mode', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             const options = {
                 to: 'recipient@example.com',
@@ -134,7 +147,9 @@ describe('emailService', () => {
                 subject: 'Test Subject',
                 text: 'Test message',
             });
-            expect(consoleSpy).toHaveBeenCalledWith('📧 Email sent to recipient@example.com');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📧 Email sent to recipient@example.com'
+            );
         });
 
         it('should send email when SEND_EMAILS is true in development', async () => {
@@ -143,7 +158,9 @@ describe('emailService', () => {
                 if (key === 'EMAIL_FROM') return 'test@example.com';
                 return '';
             });
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             const options = {
                 to: 'recipient@example.com',
@@ -179,9 +196,15 @@ describe('emailService', () => {
 
             expect(result).toBe(true);
             expect(mockTransporter.sendMail).not.toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            expect(consoleSpy).toHaveBeenCalledWith('📧 MOCK EMAIL (Development Mode)');
-            expect(consoleSpy).toHaveBeenCalledWith('To: recipient@example.com');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📧 MOCK EMAIL (Development Mode)'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'To: recipient@example.com'
+            );
             expect(consoleSpy).toHaveBeenCalledWith('Subject: Test Subject');
             expect(consoleSpy).toHaveBeenCalledWith('Text: Test message');
         });
@@ -199,12 +222,17 @@ describe('emailService', () => {
             const result = await sendEmail(options);
 
             expect(result).toBe(false);
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to send email:', expect.any(Error));
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                'Failed to send email:',
+                expect.any(Error)
+            );
         });
 
         it('should handle both text and html content', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             const options = {
                 to: 'recipient@example.com',
@@ -247,9 +275,15 @@ describe('emailService', () => {
 
         it('should send SMS via email gateway in production', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
-            const result = await sendSMSViaEmail('1234567890', 'Test SMS message', 'att');
+            const result = await sendSMSViaEmail(
+                '1234567890',
+                'Test SMS message',
+                'att'
+            );
 
             expect(result).toBe(true);
             expect(mockTransporter.sendMail).toHaveBeenCalledWith({
@@ -258,12 +292,16 @@ describe('emailService', () => {
                 subject: '',
                 text: 'Test SMS message',
             });
-            expect(consoleSpy).toHaveBeenCalledWith('📱 SMS sent via email gateway to 1234567890@txt.att.net');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📱 SMS sent via email gateway to 1234567890@txt.att.net'
+            );
         });
 
         it('should clean phone number correctly', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             await sendSMSViaEmail('(123) 456-7890', 'Test message', 'att');
 
@@ -276,7 +314,9 @@ describe('emailService', () => {
 
         it('should handle US country code removal', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             await sendSMSViaEmail('+1-234-567-8900', 'Test message', 'att');
 
@@ -294,7 +334,9 @@ describe('emailService', () => {
                 if (key === 'EMAIL_USER') return 'test@example.com';
                 return '';
             });
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             await sendSMSViaEmail('1234567890', 'Test message');
 
@@ -312,13 +354,23 @@ describe('emailService', () => {
                 return '';
             });
 
-            const result = await sendSMSViaEmail('1234567890', 'Test message', 'att');
+            const result = await sendSMSViaEmail(
+                '1234567890',
+                'Test message',
+                'att'
+            );
 
             expect(result).toBe(true);
             expect(mockTransporter.sendMail).not.toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('📱 Using mock SMS gateway for development');
-            expect(consoleSpy).toHaveBeenCalledWith('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            expect(consoleSpy).toHaveBeenCalledWith('📱 MOCK SMS (Email-to-SMS Gateway)');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📱 Using mock SMS gateway for development'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📱 MOCK SMS (Email-to-SMS Gateway)'
+            );
         });
 
         it('should send SMS when SEND_SMS_EMAILS is true in development', async () => {
@@ -328,9 +380,15 @@ describe('emailService', () => {
                 if (key === 'EMAIL_USER') return 'test@example.com';
                 return '';
             });
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
-            const result = await sendSMSViaEmail('1234567890', 'Test message', 'att');
+            const result = await sendSMSViaEmail(
+                '1234567890',
+                'Test message',
+                'att'
+            );
 
             expect(result).toBe(true);
             expect(mockTransporter.sendMail).toHaveBeenCalled();
@@ -338,12 +396,21 @@ describe('emailService', () => {
 
         it('should handle SMS sending errors', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockRejectedValue(new Error('SMS gateway error'));
+            mockTransporter.sendMail.mockRejectedValue(
+                new Error('SMS gateway error')
+            );
 
-            const result = await sendSMSViaEmail('1234567890', 'Test message', 'att');
+            const result = await sendSMSViaEmail(
+                '1234567890',
+                'Test message',
+                'att'
+            );
 
             expect(result).toBe(false);
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to send SMS via email gateway:', expect.any(Error));
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                'Failed to send SMS via email gateway:',
+                expect.any(Error)
+            );
         });
     });
 
@@ -359,7 +426,9 @@ describe('emailService', () => {
                 if (key === 'EMAIL_FROM') return 'noreply@auth2.com';
                 return '';
             });
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             const result = await sendVerificationEmail(
                 'user@example.com',
@@ -376,14 +445,18 @@ describe('emailService', () => {
             });
 
             const htmlContent = mockTransporter.sendMail.mock.calls[0][0].html;
-            expect(htmlContent).toContain('https://example.com/verify?token=abc123');
+            expect(htmlContent).toContain(
+                'https://example.com/verify?token=abc123'
+            );
             expect(htmlContent).toContain('Verify Email');
             expect(htmlContent).toContain('This link will expire in 48 hours');
         });
 
         it('should handle verification email sending errors', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockRejectedValue(new Error('Email service error'));
+            mockTransporter.sendMail.mockRejectedValue(
+                new Error('Email service error')
+            );
 
             const result = await sendVerificationEmail(
                 'user@example.com',
@@ -407,7 +480,9 @@ describe('emailService', () => {
                 if (key === 'EMAIL_FROM') return 'noreply@auth2.com';
                 return '';
             });
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             const result = await sendPasswordResetEmail(
                 'user@example.com',
@@ -424,14 +499,18 @@ describe('emailService', () => {
             });
 
             const htmlContent = mockTransporter.sendMail.mock.calls[0][0].html;
-            expect(htmlContent).toContain('https://example.com/reset?token=xyz789');
+            expect(htmlContent).toContain(
+                'https://example.com/reset?token=xyz789'
+            );
             expect(htmlContent).toContain('Reset Password');
             expect(htmlContent).toContain('This link will expire in 1 hour');
         });
 
         it('should handle password reset email sending errors', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockRejectedValue(new Error('Email service error'));
+            mockTransporter.sendMail.mockRejectedValue(
+                new Error('Email service error')
+            );
 
             const result = await sendPasswordResetEmail(
                 'user@example.com',
@@ -450,7 +529,9 @@ describe('emailService', () => {
 
         it('should handle complete email workflow', async () => {
             mockEnvConfig.isProduction.mockReturnValue(true);
-            mockTransporter.sendMail.mockResolvedValue({} as nodemailer.SentMessageInfo);
+            mockTransporter.sendMail.mockResolvedValue(
+                {} as nodemailer.SentMessageInfo
+            );
 
             // Send verification email
             const verificationResult = await sendVerificationEmail(
@@ -467,7 +548,11 @@ describe('emailService', () => {
             );
 
             // Send SMS
-            const smsResult = await sendSMSViaEmail('1234567890', 'Your code is 123456', 'att');
+            const smsResult = await sendSMSViaEmail(
+                '1234567890',
+                'Your code is 123456',
+                'att'
+            );
 
             expect(verificationResult).toBe(true);
             expect(resetResult).toBe(true);
@@ -494,8 +579,12 @@ describe('emailService', () => {
             expect(emailResult).toBe(true);
             expect(smsResult).toBe(true);
             expect(mockTransporter.sendMail).not.toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('📧 MOCK EMAIL (Development Mode)');
-            expect(consoleSpy).toHaveBeenCalledWith('📱 MOCK SMS (Email-to-SMS Gateway)');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📧 MOCK EMAIL (Development Mode)'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '📱 MOCK SMS (Email-to-SMS Gateway)'
+            );
         });
     });
 });

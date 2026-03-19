@@ -58,8 +58,10 @@ export const isValidRole = (role: string | number): boolean => {
     const roleNum = typeof role === 'string' ? Number(role) : role;
 
     // Check if it's a valid number and an integer value (even if written as "1.0")
-    return !isNaN(roleNum) &&
+    return (
+        !isNaN(roleNum) &&
         Number.isInteger(roleNum) &&
         roleNum >= 1 &&
-        roleNum <= 5;
+        roleNum <= 5
+    );
 };

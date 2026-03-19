@@ -1,6 +1,10 @@
 // src/index.ts
 import { Server } from 'http';
-import { getEnvVar, connectToDatabase, disconnectFromDatabase } from './core/utilities';
+import {
+    getEnvVar,
+    connectToDatabase,
+    disconnectFromDatabase,
+} from './core/utilities';
 import { prisma } from './lib/prisma';
 import { app } from './app';
 
@@ -34,9 +38,15 @@ const startServer = async (): Promise<Server> => {
 
     // Start HTTP server
     const server: Server = app.listen(PORT, () => {
-        console.log(`✅ TCSS-460-auth-squared is running at http://localhost:${PORT}`);
-        console.log(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
-        console.log(`🔐 Admin routes available at http://localhost:${PORT}/admin/*`);
+        console.log(
+            `✅ TCSS-460-auth-squared is running at http://localhost:${PORT}`
+        );
+        console.log(
+            `📚 API Documentation available at http://localhost:${PORT}/api-docs`
+        );
+        console.log(
+            `🔐 Admin routes available at http://localhost:${PORT}/admin/*`
+        );
     });
 
     /**

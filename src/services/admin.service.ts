@@ -1,7 +1,10 @@
 // src/services/admin.service.ts
 import { prisma } from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
-import { generateSalt, generateHash } from '../core/utilities/credentialingUtils';
+import {
+    generateSalt,
+    generateHash,
+} from '../core/utilities/credentialingUtils';
 import { ErrorCodes } from '../core/utilities/errorCodes';
 import { RoleName, UserRole } from '../core/models';
 
@@ -61,7 +64,10 @@ export const adminService = {
         const appliedFilters: any = {};
         if (status) appliedFilters.status = status;
         if (role !== undefined) {
-            appliedFilters.role = { level: role, name: RoleName[role as UserRole] };
+            appliedFilters.role = {
+                level: role,
+                name: RoleName[role as UserRole],
+            };
         }
 
         return {
@@ -74,7 +80,10 @@ export const adminService = {
                     totalUsers,
                     totalPages: Math.ceil(totalUsers / limit),
                 },
-                filters: Object.keys(appliedFilters).length > 0 ? appliedFilters : null,
+                filters:
+                    Object.keys(appliedFilters).length > 0
+                        ? appliedFilters
+                        : null,
             },
         };
     },
@@ -95,10 +104,22 @@ export const adminService = {
         const orConditions: Prisma.AccountWhereInput[] = [];
         for (const field of fields) {
             const key = field.toLowerCase();
-            if (key === 'firstname') orConditions.push({ firstName: { contains: searchTerm, mode: 'insensitive' } });
-            if (key === 'lastname') orConditions.push({ lastName: { contains: searchTerm, mode: 'insensitive' } });
-            if (key === 'username') orConditions.push({ username: { contains: searchTerm, mode: 'insensitive' } });
-            if (key === 'email') orConditions.push({ email: { contains: searchTerm, mode: 'insensitive' } });
+            if (key === 'firstname')
+                orConditions.push({
+                    firstName: { contains: searchTerm, mode: 'insensitive' },
+                });
+            if (key === 'lastname')
+                orConditions.push({
+                    lastName: { contains: searchTerm, mode: 'insensitive' },
+                });
+            if (key === 'username')
+                orConditions.push({
+                    username: { contains: searchTerm, mode: 'insensitive' },
+                });
+            if (key === 'email')
+                orConditions.push({
+                    email: { contains: searchTerm, mode: 'insensitive' },
+                });
         }
 
         const where: Prisma.AccountWhereInput = { OR: orConditions };
@@ -133,11 +154,23 @@ export const adminService = {
      * Get user by ID
      */
     async getUserById(userId: number): Promise<ServiceResult<any>> {
-        const account = await prisma.account.findUnique({ where: { accountId: userId } });
+        const account = await prisma.account.findUnique({
+            where: { accountId: userId },
+        });
         if (!account) {
-            return { success: false, error: { status: 404, message: 'User not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
-        return { success: true, data: { user: formatUserForResponse(account) } };
+        return {
+            success: true,
+            data: { user: formatUserForResponse(account) },
+        };
     },
 
     /**
@@ -145,13 +178,20 @@ export const adminService = {
      */
     async updateUser(
         userId: number,
-        updates: { accountStatus?: string; emailVerified?: boolean; phoneVerified?: boolean }
+        updates: {
+            accountStatus?: string;
+            emailVerified?: boolean;
+            phoneVerified?: boolean;
+        }
     ): Promise<ServiceResult<any>> {
         const data: Prisma.AccountUpdateInput = { updatedAt: new Date() };
 
-        if (updates.accountStatus !== undefined) data.accountStatus = updates.accountStatus;
-        if (updates.emailVerified !== undefined) data.emailVerified = updates.emailVerified;
-        if (updates.phoneVerified !== undefined) data.phoneVerified = updates.phoneVerified;
+        if (updates.accountStatus !== undefined)
+            data.accountStatus = updates.accountStatus;
+        if (updates.emailVerified !== undefined)
+            data.emailVerified = updates.emailVerified;
+        if (updates.phoneVerified !== undefined)
+            data.phoneVerified = updates.phoneVerified;
 
         const account = await prisma.account.update({
             where: { accountId: userId },
@@ -192,7 +232,14 @@ export const adminService = {
         });
 
         if (result.count === 0) {
-            return { success: false, error: { status: 404, message: 'User not found or already deleted', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found or already deleted',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         return { success: true };
@@ -246,14 +293,24 @@ export const adminService = {
     /**
      * Reset user password (admin action)
      */
-    async resetUserPassword(userId: number, newPassword: string): Promise<ServiceResult<null>> {
+    async resetUserPassword(
+        userId: number,
+        newPassword: string
+    ): Promise<ServiceResult<null>> {
         const account = await prisma.account.findUnique({
             where: { accountId: userId },
             select: { accountId: true },
         });
 
         if (!account) {
-            return { success: false, error: { status: 404, message: 'User not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         const salt = generateSalt();
@@ -283,10 +340,22 @@ export const adminService = {
     /**
      * Change user role
      */
-    async changeUserRole(userId: number, newRole: number): Promise<ServiceResult<any>> {
-        const currentAccount = await prisma.account.findUnique({ where: { accountId: userId } });
+    async changeUserRole(
+        userId: number,
+        newRole: number
+    ): Promise<ServiceResult<any>> {
+        const currentAccount = await prisma.account.findUnique({
+            where: { accountId: userId },
+        });
         if (!currentAccount) {
-            return { success: false, error: { status: 404, message: 'User not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         const updatedAccount = await prisma.account.update({

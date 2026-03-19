@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= tenant.tenantName %> - Admin - Auth²</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YcnS/1Ysyl1FMJI55Rl0oIoU6SY22lFbOj0" crossorigin="anonymous">
+         >
     <style>
         body { background-color: #f8f9fa; }
         .color-swatch-lg {
@@ -224,13 +224,14 @@
             <div class="collapse" id="addMemberForm">
                 <div class="card-body border-bottom bg-light">
                     <form method="POST" action="/admin/ui/tenants/<%= tenant.tenantId %>/members">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="accountId" class="form-label">Account ID</label>
-                                <input type="number" class="form-control" id="accountId" name="accountId"
-                                       placeholder="e.g., 42" required>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label for="memberEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="memberEmail" name="email"
+                                       placeholder="user@example.com" required>
+                                <div class="form-text">The user must already have an Auth² account.</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="memberRole" class="form-label">Role</label>
                                 <select class="form-select" id="memberRole" name="role">
                                     <option value="1" selected>User (1)</option>
@@ -240,11 +241,11 @@
                                     <option value="5">Owner (5)</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary btn-sm">Add Member</button>
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse"
-                                    data-bs-target="#addMemberForm">Cancel</button>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">Add Member</button>
+                                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse"
+                                        data-bs-target="#addMemberForm">Cancel</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -255,12 +256,12 @@
                     <div class="p-4 text-center text-muted">No members in this tenant.</div>
                 <% } else { %>
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>Username</th>
                                     <th>Role</th>
                                     <th>Actions</th>
                                 </tr>
@@ -268,18 +269,38 @@
                             <tbody>
                                 <% members.forEach(function(member) { %>
                                     <tr>
-                                        <td><%= member.accountId %></td>
-                                        <td><%= member.firstName %> <%= member.lastName %></td>
-                                        <td><%= member.email %></td>
+                                        <td>
+                                            <form method="POST" class="d-inline"
+                                                  action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/edit">
+                                                <div class="input-group input-group-sm" style="max-width: 260px;">
+                                                    <input type="text" class="form-control" name="firstName"
+                                                           value="<%= member.firstName %>" style="max-width: 110px;">
+                                                    <input type="text" class="form-control" name="lastName"
+                                                           value="<%= member.lastName %>" style="max-width: 110px;">
+                                                    <button type="submit" class="btn btn-outline-secondary" title="Save name">Save</button>
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form method="POST" class="d-inline"
+                                                  action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/edit">
+                                                <div class="input-group input-group-sm" style="max-width: 280px;">
+                                                    <input type="email" class="form-control" name="email"
+                                                           value="<%= member.email %>">
+                                                    <button type="submit" class="btn btn-outline-secondary" title="Save email">Save</button>
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td><code class="small"><%= member.username %></code></td>
                                         <td>
                                             <form method="POST" class="d-flex align-items-center gap-1"
                                                   action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/role">
                                                 <select class="form-select form-select-sm" name="role" style="width: auto;">
-                                                    <option value="1" <%= member.roleLevel === 1 ? 'selected' : '' %>>User (1)</option>
-                                                    <option value="2" <%= member.roleLevel === 2 ? 'selected' : '' %>>Moderator (2)</option>
-                                                    <option value="3" <%= member.roleLevel === 3 ? 'selected' : '' %>>Admin (3)</option>
-                                                    <option value="4" <%= member.roleLevel === 4 ? 'selected' : '' %>>SuperAdmin (4)</option>
-                                                    <option value="5" <%= member.roleLevel === 5 ? 'selected' : '' %>>Owner (5)</option>
+                                                    <option value="1" <%= member.roleLevel === 1 ? 'selected' : '' %>>User</option>
+                                                    <option value="2" <%= member.roleLevel === 2 ? 'selected' : '' %>>Moderator</option>
+                                                    <option value="3" <%= member.roleLevel === 3 ? 'selected' : '' %>>Admin</option>
+                                                    <option value="4" <%= member.roleLevel === 4 ? 'selected' : '' %>>SuperAdmin</option>
+                                                    <option value="5" <%= member.roleLevel === 5 ? 'selected' : '' %>>Owner</option>
                                                 </select>
                                                 <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
                                             </form>
@@ -287,8 +308,8 @@
                                         <td>
                                             <form method="POST"
                                                   action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/remove"
-                                                  onsubmit="return confirm('Remove this member from the tenant?')">
-                                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                                  onsubmit="return confirm('Remove <%= member.firstName %> <%= member.lastName %> from this tenant?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -324,6 +345,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+           ></script>
 </body>
 </html>

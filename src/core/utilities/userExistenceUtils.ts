@@ -27,7 +27,12 @@ export const checkUserExistence = async (
         select: { accountId: true },
     });
     if (emailCheck) {
-        return { exists: true, field: 'email', errorCode: ErrorCodes.AUTH_EMAIL_EXISTS, message: 'Email already exists' };
+        return {
+            exists: true,
+            field: 'email',
+            errorCode: ErrorCodes.AUTH_EMAIL_EXISTS,
+            message: 'Email already exists',
+        };
     }
 
     const usernameCheck = await prisma.account.findUnique({
@@ -35,7 +40,12 @@ export const checkUserExistence = async (
         select: { accountId: true },
     });
     if (usernameCheck) {
-        return { exists: true, field: 'username', errorCode: ErrorCodes.AUTH_USERNAME_EXISTS, message: 'Username already exists' };
+        return {
+            exists: true,
+            field: 'username',
+            errorCode: ErrorCodes.AUTH_USERNAME_EXISTS,
+            message: 'Username already exists',
+        };
     }
 
     const phoneCheck = await prisma.account.findUnique({
@@ -43,7 +53,12 @@ export const checkUserExistence = async (
         select: { accountId: true },
     });
     if (phoneCheck) {
-        return { exists: true, field: 'phone', errorCode: ErrorCodes.AUTH_PHONE_EXISTS, message: 'Phone already exists' };
+        return {
+            exists: true,
+            field: 'phone',
+            errorCode: ErrorCodes.AUTH_PHONE_EXISTS,
+            message: 'Phone already exists',
+        };
     }
 
     return { exists: false };

@@ -30,13 +30,18 @@ const optionalEnvVars = {
  * Call this at application startup
  */
 export const validateEnv = (): void => {
-    const missing = requiredEnvVars.filter(key => !process.env[key]);
-    
+    const missing = requiredEnvVars.filter((key) => !process.env[key]);
+
     if (missing.length > 0) {
-        console.error('❌ Missing required environment variables:', missing.join(', '));
-        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        console.error(
+            '❌ Missing required environment variables:',
+            missing.join(', ')
+        );
+        throw new Error(
+            `Missing required environment variables: ${missing.join(', ')}`
+        );
     }
-    
+
     // Set defaults for optional variables
     Object.entries(optionalEnvVars).forEach(([key, defaultValue]) => {
         if (!process.env[key]) {
@@ -44,7 +49,7 @@ export const validateEnv = (): void => {
             console.log(`ℹ️ Using default value for ${key}: ${defaultValue}`);
         }
     });
-    
+
     console.log('✅ Environment variables validated successfully');
 };
 
@@ -54,7 +59,9 @@ export const validateEnv = (): void => {
 export const getEnvVar = (key: string, defaultValue?: string): string => {
     const value = process.env[key] || defaultValue;
     if (!value) {
-        throw new Error(`Environment variable ${key} is not set and no default provided`);
+        throw new Error(
+            `Environment variable ${key} is not set and no default provided`
+        );
     }
     return value;
 };

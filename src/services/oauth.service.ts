@@ -25,25 +25,51 @@ export const oauthService = {
     /**
      * Validate OAuth client and redirect URI
      */
-    async validateClient(clientId: string, redirectUri: string): Promise<OAuthResult<{
-        client: any;
-        tenant: any;
-    }>> {
+    async validateClient(
+        clientId: string,
+        redirectUri: string
+    ): Promise<
+        OAuthResult<{
+            client: any;
+            tenant: any;
+        }>
+    > {
         const client = await prisma.oAuthClient.findUnique({
             where: { clientId },
             include: { tenant: true },
         });
 
         if (!client) {
-            return { success: false, error: { error: 'invalid_client', error_description: 'Unknown client_id', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_client',
+                    error_description: 'Unknown client_id',
+                    status: 400,
+                },
+            };
         }
 
         if (!client.tenant.isActive) {
-            return { success: false, error: { error: 'access_denied', error_description: 'Tenant is not active', status: 403 } };
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description: 'Tenant is not active',
+                    status: 403,
+                },
+            };
         }
 
         if (!client.redirectUris.includes(redirectUri)) {
-            return { success: false, error: { error: 'invalid_request', error_description: 'Invalid redirect_uri', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_request',
+                    error_description: 'Invalid redirect_uri',
+                    status: 400,
+                },
+            };
         }
 
         return { success: true, data: { client, tenant: client.tenant } };
@@ -52,22 +78,55 @@ export const oauthService = {
     /**
      * Authenticate user for OAuth flow (login form submission)
      */
-    async authenticateForOAuth(email: string, password: string): Promise<OAuthResult<{ accountId: number }>> {
+    async authenticateForOAuth(
+        email: string,
+        password: string
+    ): Promise<OAuthResult<{ accountId: number }>> {
         const account = await prisma.account.findUnique({
             where: { email },
             include: { credential: true },
         });
 
         if (!account || !account.credential) {
-            return { success: false, error: { error: 'access_denied', error_description: 'Invalid credentials', status: 401 } };
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description: 'Invalid credentials',
+                    status: 401,
+                },
+            };
         }
 
-        if (account.accountStatus === 'suspended' || account.accountStatus === 'locked') {
-            return { success: false, error: { error: 'access_denied', error_description: `Account is ${account.accountStatus}`, status: 403 } };
+        if (
+            account.accountStatus === 'suspended' ||
+            account.accountStatus === 'locked'
+        ) {
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description: `Account is ${account.accountStatus}`,
+                    status: 403,
+                },
+            };
         }
 
-        if (!verifyPassword(password, account.credential.salt || '', account.credential.saltedHash)) {
-            return { success: false, error: { error: 'access_denied', error_description: 'Invalid credentials', status: 401 } };
+        if (
+            !verifyPassword(
+                password,
+                account.credential.salt || '',
+                account.credential.saltedHash
+            )
+        ) {
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description: 'Invalid credentials',
+                    status: 401,
+                },
+            };
         }
 
         return { success: true, data: { accountId: account.accountId } };
@@ -76,10 +135,20 @@ export const oauthService = {
     /**
      * Ensure user has a membership in the tenant (auto-provision if allowed)
      */
-    async ensureTenantMembership(accountId: number, tenantId: string): Promise<OAuthResult<{ role: number }>> {
+    async ensureTenantMembership(
+        accountId: number,
+        tenantId: string
+    ): Promise<OAuthResult<{ role: number }>> {
         const tenant = await prisma.tenant.findUnique({ where: { tenantId } });
         if (!tenant || !tenant.isActive) {
-            return { success: false, error: { error: 'access_denied', error_description: 'Tenant not found or inactive', status: 403 } };
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description: 'Tenant not found or inactive',
+                    status: 403,
+                },
+            };
         }
 
         let membership = await prisma.tenantMembership.findUnique({
@@ -92,7 +161,14 @@ export const oauthService = {
                     data: { accountId, tenantId, role: tenant.defaultRole },
                 });
             } else {
-                return { success: false, error: { error: 'access_denied', error_description: 'Access denied to this tenant', status: 403 } };
+                return {
+                    success: false,
+                    error: {
+                        error: 'access_denied',
+                        error_description: 'Access denied to this tenant',
+                        status: 403,
+                    },
+                };
             }
         }
 
@@ -136,12 +212,14 @@ export const oauthService = {
         clientSecret: string;
         redirectUri: string;
         codeVerifier?: string;
-    }): Promise<OAuthResult<{
-        access_token: string;
-        token_type: string;
-        expires_in: number;
-        refresh_token: string;
-    }>> {
+    }): Promise<
+        OAuthResult<{
+            access_token: string;
+            token_type: string;
+            expires_in: number;
+            refresh_token: string;
+        }>
+    > {
         // Validate client credentials
         const client = await prisma.oAuthClient.findUnique({
             where: { clientId: params.clientId },
@@ -149,7 +227,14 @@ export const oauthService = {
         });
 
         if (!client || client.clientSecret !== params.clientSecret) {
-            return { success: false, error: { error: 'invalid_client', error_description: 'Invalid client credentials', status: 401 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_client',
+                    error_description: 'Invalid client credentials',
+                    status: 401,
+                },
+            };
         }
 
         // Find and validate authorization code
@@ -159,34 +244,77 @@ export const oauthService = {
         });
 
         if (!authCode) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Invalid authorization code', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Invalid authorization code',
+                    status: 400,
+                },
+            };
         }
 
         if (authCode.used) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Authorization code already used', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Authorization code already used',
+                    status: 400,
+                },
+            };
         }
 
         if (new Date() > authCode.expiresAt) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Authorization code expired', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Authorization code expired',
+                    status: 400,
+                },
+            };
         }
 
         if (authCode.clientId !== params.clientId) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Code was not issued to this client', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Code was not issued to this client',
+                    status: 400,
+                },
+            };
         }
 
         if (authCode.redirectUri !== params.redirectUri) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'redirect_uri mismatch', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'redirect_uri mismatch',
+                    status: 400,
+                },
+            };
         }
 
         // PKCE verification
         if (authCode.codeChallenge) {
             if (!params.codeVerifier) {
-                return { success: false, error: { error: 'invalid_grant', error_description: 'code_verifier is required', status: 400 } };
+                return {
+                    success: false,
+                    error: {
+                        error: 'invalid_grant',
+                        error_description: 'code_verifier is required',
+                        status: 400,
+                    },
+                };
             }
 
             let computedChallenge: string;
             if (authCode.codeChallengeMethod === 'S256') {
-                computedChallenge = crypto.createHash('sha256')
+                computedChallenge = crypto
+                    .createHash('sha256')
                     .update(params.codeVerifier)
                     .digest('base64url');
             } else {
@@ -194,7 +322,14 @@ export const oauthService = {
             }
 
             if (computedChallenge !== authCode.codeChallenge) {
-                return { success: false, error: { error: 'invalid_grant', error_description: 'PKCE verification failed', status: 400 } };
+                return {
+                    success: false,
+                    error: {
+                        error: 'invalid_grant',
+                        error_description: 'PKCE verification failed',
+                        status: 400,
+                    },
+                };
             }
         }
 
@@ -206,22 +341,32 @@ export const oauthService = {
 
         // Get tenant membership role
         const membership = await prisma.tenantMembership.findUnique({
-            where: { accountId_tenantId: { accountId: authCode.accountId, tenantId: client.tenantId } },
+            where: {
+                accountId_tenantId: {
+                    accountId: authCode.accountId,
+                    tenantId: client.tenantId,
+                },
+            },
         });
         const role = membership?.role || 1;
 
         // Generate access token (1 hour for OAuth flows)
-        const accessToken = generateAccessToken({
-            id: authCode.accountId,
-            email: authCode.account.email,
-            role,
-            sub: String(authCode.accountId),
-            tenant: client.tenantId,
-        }, '1h');
+        const accessToken = generateAccessToken(
+            {
+                id: authCode.accountId,
+                email: authCode.account.email,
+                role,
+                sub: String(authCode.accountId),
+                tenant: client.tenantId,
+            },
+            '1h'
+        );
 
         // Generate refresh token
         const refreshToken = generateRefreshToken();
-        const refreshExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days
+        const refreshExpiresAt = new Date(
+            Date.now() + 14 * 24 * 60 * 60 * 1000
+        ); // 14 days
 
         await prisma.oAuthRefreshToken.create({
             data: {
@@ -250,19 +395,28 @@ export const oauthService = {
         refreshToken: string;
         clientId: string;
         clientSecret: string;
-    }): Promise<OAuthResult<{
-        access_token: string;
-        token_type: string;
-        expires_in: number;
-        refresh_token: string;
-    }>> {
+    }): Promise<
+        OAuthResult<{
+            access_token: string;
+            token_type: string;
+            expires_in: number;
+            refresh_token: string;
+        }>
+    > {
         // Validate client credentials
         const client = await prisma.oAuthClient.findUnique({
             where: { clientId: params.clientId },
         });
 
         if (!client || client.clientSecret !== params.clientSecret) {
-            return { success: false, error: { error: 'invalid_client', error_description: 'Invalid client credentials', status: 401 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_client',
+                    error_description: 'Invalid client credentials',
+                    status: 401,
+                },
+            };
         }
 
         // Find and validate refresh token
@@ -272,19 +426,47 @@ export const oauthService = {
         });
 
         if (!storedToken) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Invalid refresh token', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Invalid refresh token',
+                    status: 400,
+                },
+            };
         }
 
         if (storedToken.revoked) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Refresh token has been revoked', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Refresh token has been revoked',
+                    status: 400,
+                },
+            };
         }
 
         if (new Date() > storedToken.expiresAt) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Refresh token expired', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Refresh token expired',
+                    status: 400,
+                },
+            };
         }
 
         if (storedToken.clientId !== params.clientId) {
-            return { success: false, error: { error: 'invalid_grant', error_description: 'Token was not issued to this client', status: 400 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Token was not issued to this client',
+                    status: 400,
+                },
+            };
         }
 
         // Revoke old refresh token (token rotation)
@@ -295,21 +477,31 @@ export const oauthService = {
 
         // Get tenant membership role
         const membership = await prisma.tenantMembership.findUnique({
-            where: { accountId_tenantId: { accountId: storedToken.accountId, tenantId: client.tenantId } },
+            where: {
+                accountId_tenantId: {
+                    accountId: storedToken.accountId,
+                    tenantId: client.tenantId,
+                },
+            },
         });
         const role = membership?.role || 1;
 
         // Issue new tokens
-        const accessToken = generateAccessToken({
-            id: storedToken.accountId,
-            email: storedToken.account.email,
-            role,
-            sub: String(storedToken.accountId),
-            tenant: client.tenantId,
-        }, '1h');
+        const accessToken = generateAccessToken(
+            {
+                id: storedToken.accountId,
+                email: storedToken.account.email,
+                role,
+                sub: String(storedToken.accountId),
+                tenant: client.tenantId,
+            },
+            '1h'
+        );
 
         const newRefreshToken = generateRefreshToken();
-        const refreshExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        const refreshExpiresAt = new Date(
+            Date.now() + 14 * 24 * 60 * 60 * 1000
+        );
 
         await prisma.oAuthRefreshToken.create({
             data: {
@@ -334,20 +526,38 @@ export const oauthService = {
     /**
      * Get user info from access token claims
      */
-    async getUserInfo(accountId: number, tenantId?: string): Promise<OAuthResult<{
-        sub: string;
-        email: string;
-        name: string;
-        role: string;
-        tenant?: string;
-    }>> {
+    async getUserInfo(
+        accountId: number,
+        tenantId?: string
+    ): Promise<
+        OAuthResult<{
+            sub: string;
+            email: string;
+            name: string;
+            role: string;
+            tenant?: string;
+        }>
+    > {
         const account = await prisma.account.findUnique({
             where: { accountId },
-            select: { accountId: true, email: true, firstName: true, lastName: true, accountRole: true },
+            select: {
+                accountId: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                accountRole: true,
+            },
         });
 
         if (!account) {
-            return { success: false, error: { error: 'invalid_token', error_description: 'User not found', status: 401 } };
+            return {
+                success: false,
+                error: {
+                    error: 'invalid_token',
+                    error_description: 'User not found',
+                    status: 401,
+                },
+            };
         }
 
         // Use tenant-specific role if tenant context exists

@@ -26,7 +26,7 @@ export const withTransaction = async <T>(
 
         return {
             success: true,
-            data: result
+            data: result,
         };
     } catch (error) {
         try {
@@ -37,7 +37,7 @@ export const withTransaction = async <T>(
 
         return {
             success: false,
-            error: error as Error
+            error: error as Error,
         };
     } finally {
         client.release();

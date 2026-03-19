@@ -1,6 +1,11 @@
 import express, { Router } from 'express';
 import { AuthController, VerificationController } from '@controllers';
-import { validateLogin, validateRegister, validatePasswordReset, validatePasswordResetRequest } from '@middleware';
+import {
+    validateLogin,
+    validateRegister,
+    validatePasswordReset,
+    validatePasswordResetRequest,
+} from '@middleware';
 
 const openRoutes: Router = express.Router();
 
@@ -24,13 +29,21 @@ openRoutes.post('/auth/register', validateRegister, AuthController.register);
  * Request password reset (requires verified email)
  * POST /auth/password/reset-request
  */
-openRoutes.post('/auth/password/reset-request', validatePasswordResetRequest, AuthController.requestPasswordReset);
+openRoutes.post(
+    '/auth/password/reset-request',
+    validatePasswordResetRequest,
+    AuthController.requestPasswordReset
+);
 
 /**
  * Reset password with token
  * POST /auth/password/reset
  */
-openRoutes.post('/auth/password/reset', validatePasswordReset, AuthController.resetPassword);
+openRoutes.post(
+    '/auth/password/reset',
+    validatePasswordReset,
+    AuthController.resetPassword
+);
 
 // ===== VERIFICATION ROUTES =====
 
@@ -44,7 +57,10 @@ openRoutes.get('/auth/verify/carriers', VerificationController.getCarriers);
  * Verify email token (can be accessed via link without authentication)
  * GET /auth/verify/email/confirm?token=xxx
  */
-openRoutes.get('/auth/verify/email/confirm', VerificationController.confirmEmailVerification);
+openRoutes.get(
+    '/auth/verify/email/confirm',
+    VerificationController.confirmEmailVerification
+);
 
 // ===== HEALTH CHECK =====
 

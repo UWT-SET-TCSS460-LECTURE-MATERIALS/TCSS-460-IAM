@@ -39,7 +39,12 @@ describe('responseUtils', () => {
             const testMessage = 'Resource created';
             const customStatus = 201;
 
-            sendSuccess(mockResponse as Response, testData, testMessage, customStatus);
+            sendSuccess(
+                mockResponse as Response,
+                testData,
+                testMessage,
+                customStatus
+            );
 
             expect(statusMock).toHaveBeenCalledWith(201);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -63,7 +68,11 @@ describe('responseUtils', () => {
         });
 
         it('should handle null data', () => {
-            sendSuccess(mockResponse as Response, null, 'Success with null data');
+            sendSuccess(
+                mockResponse as Response,
+                null,
+                'Success with null data'
+            );
 
             expect(statusMock).toHaveBeenCalledWith(200);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -74,7 +83,11 @@ describe('responseUtils', () => {
         });
 
         it('should handle empty object data', () => {
-            sendSuccess(mockResponse as Response, {}, 'Success with empty object');
+            sendSuccess(
+                mockResponse as Response,
+                {},
+                'Success with empty object'
+            );
 
             expect(statusMock).toHaveBeenCalledWith(200);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -186,7 +199,9 @@ describe('responseUtils', () => {
 
     describe('sendValidationError', () => {
         it('should send validation error with single error', () => {
-            const errors = [{ field: 'email', message: 'Invalid email format' }];
+            const errors = [
+                { field: 'email', message: 'Invalid email format' },
+            ];
 
             sendValidationError(mockResponse as Response, errors);
 
@@ -265,7 +280,12 @@ describe('responseUtils', () => {
     describe('Integration tests', () => {
         it('should correctly handle chained method calls', () => {
             const testData = { token: 'abc123' };
-            sendSuccess(mockResponse as Response, testData, 'Login successful', 200);
+            sendSuccess(
+                mockResponse as Response,
+                testData,
+                'Login successful',
+                200
+            );
 
             expect(statusMock).toHaveBeenCalledTimes(1);
             expect(statusMock).toHaveBeenCalledWith(200);
@@ -278,7 +298,12 @@ describe('responseUtils', () => {
         });
 
         it('should handle response object properly for errors', () => {
-            sendError(mockResponse as Response, 401, 'Invalid token', 'AUTH007');
+            sendError(
+                mockResponse as Response,
+                401,
+                'Invalid token',
+                'AUTH007'
+            );
 
             expect(statusMock).toHaveBeenCalledTimes(1);
             expect(statusMock).toHaveBeenCalledWith(401);
@@ -305,7 +330,11 @@ describe('responseUtils', () => {
                 },
             };
 
-            sendSuccess(mockResponse as Response, complexData, 'Profile retrieved');
+            sendSuccess(
+                mockResponse as Response,
+                complexData,
+                'Profile retrieved'
+            );
 
             expect(jsonMock).toHaveBeenCalledWith({
                 success: true,

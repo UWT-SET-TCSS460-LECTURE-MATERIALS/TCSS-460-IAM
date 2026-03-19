@@ -59,19 +59,28 @@ tenantAdminRoutes.post('/:id/clients', TenantAdminController.createClient);
  * Update a client
  * PUT /admin/tenants/:id/clients/:clientId
  */
-tenantAdminRoutes.put('/:id/clients/:clientId', TenantAdminController.updateClient);
+tenantAdminRoutes.put(
+    '/:id/clients/:clientId',
+    TenantAdminController.updateClient
+);
 
 /**
  * Delete a client and its associated codes/tokens
  * DELETE /admin/tenants/:id/clients/:clientId
  */
-tenantAdminRoutes.delete('/:id/clients/:clientId', TenantAdminController.deleteClient);
+tenantAdminRoutes.delete(
+    '/:id/clients/:clientId',
+    TenantAdminController.deleteClient
+);
 
 /**
  * Rotate a client's secret
  * POST /admin/tenants/:id/clients/:clientId/rotate
  */
-tenantAdminRoutes.post('/:id/clients/:clientId/rotate', TenantAdminController.rotateClientSecret);
+tenantAdminRoutes.post(
+    '/:id/clients/:clientId/rotate',
+    TenantAdminController.rotateClientSecret
+);
 
 // ===== MEMBERSHIP MANAGEMENT =====
 
@@ -91,12 +100,18 @@ tenantAdminRoutes.post('/:id/members', TenantAdminController.addMember);
  * Update a member's role
  * PUT /admin/tenants/:id/members/:accountId
  */
-tenantAdminRoutes.put('/:id/members/:accountId', TenantAdminController.updateMemberRole);
+tenantAdminRoutes.put(
+    '/:id/members/:accountId',
+    TenantAdminController.updateMemberRole
+);
 
 /**
  * Remove a member from a tenant
  * DELETE /admin/tenants/:id/members/:accountId
  */
-tenantAdminRoutes.delete('/:id/members/:accountId', TenantAdminController.removeMember);
+tenantAdminRoutes.delete(
+    '/:id/members/:accountId',
+    TenantAdminController.removeMember
+);
 
 export { tenantAdminRoutes };

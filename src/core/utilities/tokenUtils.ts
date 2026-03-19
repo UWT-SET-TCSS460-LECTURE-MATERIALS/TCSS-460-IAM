@@ -42,13 +42,18 @@ export const generateAccessToken = (
         claims.tenant = payload.tenant;
     }
 
-    return jwt.sign(claims, jwtSecret, { expiresIn: expiry as jwt.SignOptions['expiresIn'] });
+    return jwt.sign(claims, jwtSecret, {
+        expiresIn: expiry as jwt.SignOptions['expiresIn'],
+    });
 };
 
 /**
  * Generate password reset token with short expiry
  */
-export const generatePasswordResetToken = (userId: number, email: string): string => {
+export const generatePasswordResetToken = (
+    userId: number,
+    email: string
+): string => {
     const jwtSecret = getEnvVar('JWT_SECRET');
 
     return jwt.sign(
@@ -56,7 +61,7 @@ export const generatePasswordResetToken = (userId: number, email: string): strin
             id: userId,
             email,
             type: 'password_reset',
-            timestamp: Date.now()
+            timestamp: Date.now(),
         },
         jwtSecret,
         { expiresIn: '15m' }
@@ -66,14 +71,17 @@ export const generatePasswordResetToken = (userId: number, email: string): strin
 /**
  * Generate verification token for email/phone verification
  */
-export const generateVerificationToken = (userId: number, type: 'email' | 'phone'): string => {
+export const generateVerificationToken = (
+    userId: number,
+    type: 'email' | 'phone'
+): string => {
     const jwtSecret = getEnvVar('JWT_SECRET');
 
     return jwt.sign(
         {
             id: userId,
             type: `${type}_verification`,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         },
         jwtSecret,
         { expiresIn: '24h' }

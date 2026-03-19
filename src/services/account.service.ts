@@ -44,11 +44,22 @@ export const accountService = {
         if (!account) {
             return {
                 success: false,
-                error: { status: 404, message: 'Account not found', code: ErrorCodes.USER_NOT_FOUND },
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
             };
         }
 
-        const roleNames = ['', 'User', 'Moderator', 'Admin', 'SuperAdmin', 'Owner'];
+        const roleNames = [
+            '',
+            'User',
+            'Moderator',
+            'Admin',
+            'SuperAdmin',
+            'Owner',
+        ];
 
         return {
             success: true,
@@ -88,14 +99,28 @@ export const accountService = {
         if (!account || !account.credential) {
             return {
                 success: false,
-                error: { status: 404, message: 'Account not found', code: ErrorCodes.USER_NOT_FOUND },
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
             };
         }
 
-        if (!verifyPassword(password, account.credential.salt || '', account.credential.saltedHash)) {
+        if (
+            !verifyPassword(
+                password,
+                account.credential.salt || '',
+                account.credential.saltedHash
+            )
+        ) {
             return {
                 success: false,
-                error: { status: 400, message: 'Incorrect password', code: ErrorCodes.AUTH_INVALID_CREDENTIALS },
+                error: {
+                    status: 400,
+                    message: 'Incorrect password',
+                    code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+                },
             };
         }
 

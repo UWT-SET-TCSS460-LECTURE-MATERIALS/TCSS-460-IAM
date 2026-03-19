@@ -1,7 +1,14 @@
 // src/services/auth.service.ts
 import { prisma } from '../lib/prisma';
-import { generateSalt, generateHash, verifyPassword } from '../core/utilities/credentialingUtils';
-import { generateAccessToken, generatePasswordResetToken } from '../core/utilities/tokenUtils';
+import {
+    generateSalt,
+    generateHash,
+    verifyPassword,
+} from '../core/utilities/credentialingUtils';
+import {
+    generateAccessToken,
+    generatePasswordResetToken,
+} from '../core/utilities/tokenUtils';
 import { ErrorCodes } from '../core/utilities/errorCodes';
 import { RoleName, UserRole } from '../core/models';
 
@@ -57,20 +64,51 @@ export const authService = {
     /**
      * Check if user already exists by email, username, or phone
      */
-    async checkUserExistence(data: { email: string; username: string; phone: string }): Promise<ServiceResult<null>> {
-        const emailExists = await prisma.account.findUnique({ where: { email: data.email } });
+    async checkUserExistence(data: {
+        email: string;
+        username: string;
+        phone: string;
+    }): Promise<ServiceResult<null>> {
+        const emailExists = await prisma.account.findUnique({
+            where: { email: data.email },
+        });
         if (emailExists) {
-            return { success: false, error: { status: 400, message: 'Email already exists', code: ErrorCodes.AUTH_EMAIL_EXISTS } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Email already exists',
+                    code: ErrorCodes.AUTH_EMAIL_EXISTS,
+                },
+            };
         }
 
-        const usernameExists = await prisma.account.findUnique({ where: { username: data.username } });
+        const usernameExists = await prisma.account.findUnique({
+            where: { username: data.username },
+        });
         if (usernameExists) {
-            return { success: false, error: { status: 400, message: 'Username already exists', code: ErrorCodes.AUTH_USERNAME_EXISTS } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Username already exists',
+                    code: ErrorCodes.AUTH_USERNAME_EXISTS,
+                },
+            };
         }
 
-        const phoneExists = await prisma.account.findUnique({ where: { phone: data.phone } });
+        const phoneExists = await prisma.account.findUnique({
+            where: { phone: data.phone },
+        });
         if (phoneExists) {
-            return { success: false, error: { status: 400, message: 'Phone already exists', code: ErrorCodes.AUTH_PHONE_EXISTS } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Phone already exists',
+                    code: ErrorCodes.AUTH_PHONE_EXISTS,
+                },
+            };
         }
 
         return { success: true };
@@ -79,7 +117,9 @@ export const authService = {
     /**
      * Register a new user
      */
-    async register(data: RegisterInput): Promise<ServiceResult<{ accessToken: string; user: any }>> {
+    async register(
+        data: RegisterInput
+    ): Promise<ServiceResult<{ accessToken: string; user: any }>> {
         const uniqueness = await this.checkUserExistence({
             email: data.email,
             username: data.username,
@@ -141,28 +181,72 @@ export const authService = {
     /**
      * Authenticate user and return JWT
      */
-    async login(email: string, password: string): Promise<ServiceResult<LoginResult>> {
+    async login(
+        email: string,
+        password: string
+    ): Promise<ServiceResult<LoginResult>> {
         const account = await prisma.account.findUnique({
             where: { email },
             include: { credential: true },
         });
 
         if (!account || !account.credential) {
-            return { success: false, error: { status: 401, message: 'Invalid credentials', code: ErrorCodes.AUTH_INVALID_CREDENTIALS } };
+            return {
+                success: false,
+                error: {
+                    status: 401,
+                    message: 'Invalid credentials',
+                    code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+                },
+            };
         }
 
         if (account.accountStatus === 'suspended') {
-            return { success: false, error: { status: 403, message: 'Account is suspended. Please contact support.', code: ErrorCodes.AUTH_ACCOUNT_SUSPENDED } };
+            return {
+                success: false,
+                error: {
+                    status: 403,
+                    message: 'Account is suspended. Please contact support.',
+                    code: ErrorCodes.AUTH_ACCOUNT_SUSPENDED,
+                },
+            };
         }
         if (account.accountStatus === 'locked') {
-            return { success: false, error: { status: 403, message: 'Account is locked. Please contact support.', code: ErrorCodes.AUTH_ACCOUNT_LOCKED } };
+            return {
+                success: false,
+                error: {
+                    status: 403,
+                    message: 'Account is locked. Please contact support.',
+                    code: ErrorCodes.AUTH_ACCOUNT_LOCKED,
+                },
+            };
         }
 
-        if (!verifyPassword(password, account.credential.salt || '', account.credential.saltedHash)) {
-            return { success: false, error: { status: 401, message: 'Invalid credentials', code: ErrorCodes.AUTH_INVALID_CREDENTIALS } };
+        if (
+            !verifyPassword(
+                password,
+                account.credential.salt || '',
+                account.credential.saltedHash
+            )
+        ) {
+            return {
+                success: false,
+                error: {
+                    status: 401,
+                    message: 'Invalid credentials',
+                    code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+                },
+            };
         }
 
-        const roleNames = ['', 'User', 'Moderator', 'Admin', 'SuperAdmin', 'Owner'];
+        const roleNames = [
+            '',
+            'User',
+            'Moderator',
+            'Admin',
+            'SuperAdmin',
+            'Owner',
+        ];
         const token = generateAccessToken({
             id: account.accountId,
             email: account.email,
@@ -191,21 +275,59 @@ export const authService = {
     /**
      * Change password (requires old password verification)
      */
-    async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<ServiceResult<null>> {
+    async changePassword(
+        userId: number,
+        oldPassword: string,
+        newPassword: string
+    ): Promise<ServiceResult<null>> {
         const credential = await prisma.accountCredential.findUnique({
             where: { accountId: userId },
         });
 
         if (!credential) {
-            return { success: false, error: { status: 404, message: 'User credentials not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User credentials not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
-        if (!verifyPassword(oldPassword, credential.salt || '', credential.saltedHash)) {
-            return { success: false, error: { status: 400, message: 'Current password is incorrect', code: ErrorCodes.AUTH_INVALID_CREDENTIALS } };
+        if (
+            !verifyPassword(
+                oldPassword,
+                credential.salt || '',
+                credential.saltedHash
+            )
+        ) {
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Current password is incorrect',
+                    code: ErrorCodes.AUTH_INVALID_CREDENTIALS,
+                },
+            };
         }
 
-        if (verifyPassword(newPassword, credential.salt || '', credential.saltedHash)) {
-            return { success: false, error: { status: 400, message: 'New password must be different from current password', code: ErrorCodes.VALD_INVALID_PASSWORD } };
+        if (
+            verifyPassword(
+                newPassword,
+                credential.salt || '',
+                credential.saltedHash
+            )
+        ) {
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message:
+                        'New password must be different from current password',
+                    code: ErrorCodes.VALD_INVALID_PASSWORD,
+                },
+            };
         }
 
         const salt = generateSalt();
@@ -228,7 +350,9 @@ export const authService = {
     /**
      * Look up account for password reset (email enumeration resistant)
      */
-    async findAccountForReset(email: string): Promise<{ accountId: number; firstname: string } | null> {
+    async findAccountForReset(
+        email: string
+    ): Promise<{ accountId: number; firstname: string } | null> {
         const account = await prisma.account.findUnique({
             where: { email },
             select: { accountId: true, firstName: true, emailVerified: true },
@@ -241,14 +365,24 @@ export const authService = {
     /**
      * Reset password with token (after token verification in controller)
      */
-    async resetPassword(userId: number, newPassword: string): Promise<ServiceResult<null>> {
+    async resetPassword(
+        userId: number,
+        newPassword: string
+    ): Promise<ServiceResult<null>> {
         const account = await prisma.account.findUnique({
             where: { accountId: userId },
             select: { accountId: true },
         });
 
         if (!account) {
-            return { success: false, error: { status: 404, message: 'Account not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         const salt = generateSalt();

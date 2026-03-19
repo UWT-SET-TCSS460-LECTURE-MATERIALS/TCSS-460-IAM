@@ -7,16 +7,20 @@ import { SMS_GATEWAYS } from '@models';
  * Middleware to handle validation errors
  * Add this after validation rules to check for errors
  */
-export const handleValidationErrors = (request: Request, response: Response, next: NextFunction) => {
+export const handleValidationErrors = (
+    request: Request,
+    response: Response,
+    next: NextFunction
+) => {
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
         return response.status(400).json({
             success: false,
             message: 'Validation failed',
-            errors: errors.array().map(err => ({
+            errors: errors.array().map((err) => ({
                 field: err.type === 'field' ? err.path : undefined,
-                message: err.msg
-            }))
+                message: err.msg,
+            })),
         });
     }
     next();
@@ -32,12 +36,13 @@ export const handleValidationErrors = (request: Request, response: Response, nex
 export const validateLogin = [
     body('email')
         .trim()
-        .notEmpty().withMessage('Email is required')
-        .isEmail().withMessage('Invalid email format')
+        .notEmpty()
+        .withMessage('Email is required')
+        .isEmail()
+        .withMessage('Invalid email format')
         .normalizeEmail(),
-    body('password')
-        .notEmpty().withMessage('Password is required'),
-    handleValidationErrors
+    body('password').notEmpty().withMessage('Password is required'),
+    handleValidationErrors,
 ];
 
 /**
@@ -46,31 +51,46 @@ export const validateLogin = [
 export const validateRegister = [
     body('firstname')
         .trim()
-        .notEmpty().withMessage('First name is required')
-        .isLength({ min: 1, max: 100 }).withMessage('First name must be between 1 and 100 characters'),
+        .notEmpty()
+        .withMessage('First name is required')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('First name must be between 1 and 100 characters'),
     body('lastname')
         .trim()
-        .notEmpty().withMessage('Last name is required')
-        .isLength({ min: 1, max: 100 }).withMessage('Last name must be between 1 and 100 characters'),
+        .notEmpty()
+        .withMessage('Last name is required')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Last name must be between 1 and 100 characters'),
     body('email')
         .trim()
-        .notEmpty().withMessage('Email is required')
-        .isEmail().withMessage('Invalid email format')
+        .notEmpty()
+        .withMessage('Email is required')
+        .isEmail()
+        .withMessage('Invalid email format')
         .normalizeEmail(),
     body('username')
         .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ min: 3, max: 50 }).withMessage('Username must be between 3 and 50 characters')
-        .matches(/^[a-zA-Z0-9_-]+$/).withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+        .notEmpty()
+        .withMessage('Username is required')
+        .isLength({ min: 3, max: 50 })
+        .withMessage('Username must be between 3 and 50 characters')
+        .matches(/^[a-zA-Z0-9_-]+$/)
+        .withMessage(
+            'Username can only contain letters, numbers, underscores, and hyphens'
+        ),
     body('password')
-        .notEmpty().withMessage('Password is required')
-        .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters'),
+        .notEmpty()
+        .withMessage('Password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters'),
     body('phone')
         .trim()
-        .notEmpty().withMessage('Phone is required')
-        .matches(/^\d{10,}$/).withMessage('Phone must be at least 10 digits'),
+        .notEmpty()
+        .withMessage('Phone is required')
+        .matches(/^\d{10,}$/)
+        .withMessage('Phone must be at least 10 digits'),
     // NOTE: No role validation - public registration always creates basic users
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 /**
@@ -79,34 +99,51 @@ export const validateRegister = [
 export const validateAdminCreateUser = [
     body('firstname')
         .trim()
-        .notEmpty().withMessage('First name is required')
-        .isLength({ min: 1, max: 100 }).withMessage('First name must be between 1 and 100 characters'),
+        .notEmpty()
+        .withMessage('First name is required')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('First name must be between 1 and 100 characters'),
     body('lastname')
         .trim()
-        .notEmpty().withMessage('Last name is required')
-        .isLength({ min: 1, max: 100 }).withMessage('Last name must be between 1 and 100 characters'),
+        .notEmpty()
+        .withMessage('Last name is required')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Last name must be between 1 and 100 characters'),
     body('email')
         .trim()
-        .notEmpty().withMessage('Email is required')
-        .isEmail().withMessage('Invalid email format')
+        .notEmpty()
+        .withMessage('Email is required')
+        .isEmail()
+        .withMessage('Invalid email format')
         .normalizeEmail(),
     body('username')
         .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ min: 3, max: 50 }).withMessage('Username must be between 3 and 50 characters')
-        .matches(/^[a-zA-Z0-9_-]+$/).withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+        .notEmpty()
+        .withMessage('Username is required')
+        .isLength({ min: 3, max: 50 })
+        .withMessage('Username must be between 3 and 50 characters')
+        .matches(/^[a-zA-Z0-9_-]+$/)
+        .withMessage(
+            'Username can only contain letters, numbers, underscores, and hyphens'
+        ),
     body('password')
-        .notEmpty().withMessage('Password is required')
-        .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters'),
+        .notEmpty()
+        .withMessage('Password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters'),
     body('role')
-        .notEmpty().withMessage('Role is required')
-        .isInt({ min: 1, max: 5 }).withMessage('Role must be an integer between 1 and 5')
+        .notEmpty()
+        .withMessage('Role is required')
+        .isInt({ min: 1, max: 5 })
+        .withMessage('Role must be an integer between 1 and 5')
         .toInt(),
     body('phone')
         .trim()
-        .notEmpty().withMessage('Phone is required')
-        .matches(/^\d{10,}$/).withMessage('Phone must be at least 10 digits'),
-    handleValidationErrors
+        .notEmpty()
+        .withMessage('Phone is required')
+        .matches(/^\d{10,}$/)
+        .withMessage('Phone must be at least 10 digits'),
+    handleValidationErrors,
 ];
 
 // ============================================
@@ -119,37 +156,40 @@ export const validateAdminCreateUser = [
 export const validatePasswordResetRequest = [
     body('email')
         .trim()
-        .notEmpty().withMessage('Email is required')
-        .isEmail().withMessage('Invalid email format')
+        .notEmpty()
+        .withMessage('Email is required')
+        .isEmail()
+        .withMessage('Invalid email format')
         .normalizeEmail(),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 /**
  * Password reset validation (with token)
  */
 export const validatePasswordReset = [
-    body('token')
-        .trim()
-        .notEmpty().withMessage('Reset token is required'),
+    body('token').trim().notEmpty().withMessage('Reset token is required'),
     body('password')
-        .notEmpty().withMessage('Password is required')
-        .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters'),
-    handleValidationErrors
+        .notEmpty()
+        .withMessage('Password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters'),
+    handleValidationErrors,
 ];
 
 /**
  * Password change validation (for authenticated users)
  */
 export const validatePasswordChange = [
-    body('oldPassword')
-        .notEmpty().withMessage('Old password is required'),
+    body('oldPassword').notEmpty().withMessage('Old password is required'),
     body('newPassword')
-        .notEmpty().withMessage('New password is required')
-        .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters')
+        .notEmpty()
+        .withMessage('New password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters')
         .custom((value, { req }) => value !== req.body.oldPassword)
         .withMessage('New password must be different from old password'),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 // ============================================
@@ -165,7 +205,7 @@ export const validatePhoneSend = [
         .trim()
         .isIn(Object.keys(SMS_GATEWAYS))
         .withMessage('Invalid carrier'),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 /**
@@ -174,9 +214,11 @@ export const validatePhoneSend = [
 export const validatePhoneVerify = [
     body('code')
         .trim()
-        .notEmpty().withMessage('Verification code is required')
-        .matches(/^\d{6}$/).withMessage('Verification code must be 6 digits'),
-    handleValidationErrors
+        .notEmpty()
+        .withMessage('Verification code is required')
+        .matches(/^\d{6}$/)
+        .withMessage('Verification code must be 6 digits'),
+    handleValidationErrors,
 ];
 
 /**
@@ -185,8 +227,9 @@ export const validatePhoneVerify = [
 export const validateEmailToken = [
     param('token')
         .trim()
-        .notEmpty().withMessage('Verification token is required'),
-    handleValidationErrors
+        .notEmpty()
+        .withMessage('Verification token is required'),
+    handleValidationErrors,
 ];
 
 // ============================================
@@ -199,10 +242,12 @@ export const validateEmailToken = [
  */
 export const validateUserIdParam = [
     param('id')
-        .notEmpty().withMessage('User ID is required')
-        .isInt().withMessage('User ID must be an integer')
+        .notEmpty()
+        .withMessage('User ID is required')
+        .isInt()
+        .withMessage('User ID must be an integer')
         .toInt(),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 // ============================================
@@ -214,9 +259,12 @@ export const validateUserIdParam = [
  * Add to password fields if you want stronger validation
  */
 export const passwordStrength = body('password')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+    .withMessage(
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    );
 
 /**
  * Sanitize and validate pagination parameters
@@ -224,13 +272,15 @@ export const passwordStrength = body('password')
 export const validatePagination = [
     body('page')
         .optional()
-        .isInt({ min: 1 }).withMessage('Page must be a positive integer')
+        .isInt({ min: 1 })
+        .withMessage('Page must be a positive integer')
         .toInt(),
     body('limit')
         .optional()
-        .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
+        .isInt({ min: 1, max: 100 })
+        .withMessage('Limit must be between 1 and 100')
         .toInt(),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 // ============================================
@@ -242,22 +292,27 @@ export const validatePagination = [
  */
 export const validateUserSearch = [
     query('q')
-        .notEmpty().withMessage('Search term is required')
+        .notEmpty()
+        .withMessage('Search term is required')
         .trim()
-        .isLength({ min: 1, max: 100 }).withMessage('Search term must be between 1 and 100 characters'),
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Search term must be between 1 and 100 characters'),
     query('fields')
         .optional()
         .trim()
-        .matches(/^[a-zA-Z,]+$/).withMessage('Fields parameter can only contain letters and commas'),
+        .matches(/^[a-zA-Z,]+$/)
+        .withMessage('Fields parameter can only contain letters and commas'),
     query('page')
         .optional()
-        .isInt({ min: 1 }).withMessage('Page must be a positive integer')
+        .isInt({ min: 1 })
+        .withMessage('Page must be a positive integer')
         .toInt(),
     query('limit')
         .optional()
-        .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
+        .isInt({ min: 1, max: 100 })
+        .withMessage('Limit must be between 1 and 100')
         .toInt(),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 /**
@@ -266,13 +321,17 @@ export const validateUserSearch = [
  */
 export const validateAdminPasswordReset = [
     param('id')
-        .notEmpty().withMessage('User ID is required')
-        .isInt().withMessage('User ID must be an integer')
+        .notEmpty()
+        .withMessage('User ID is required')
+        .isInt()
+        .withMessage('User ID must be an integer')
         .toInt(),
     body('password')
-        .notEmpty().withMessage('Password is required')
-        .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters'),
-    handleValidationErrors
+        .notEmpty()
+        .withMessage('Password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters'),
+    handleValidationErrors,
 ];
 
 /**
@@ -280,14 +339,18 @@ export const validateAdminPasswordReset = [
  */
 export const validateAdminRoleChange = [
     param('id')
-        .notEmpty().withMessage('User ID is required')
-        .isInt().withMessage('User ID must be an integer')
+        .notEmpty()
+        .withMessage('User ID is required')
+        .isInt()
+        .withMessage('User ID must be an integer')
         .toInt(),
     body('role')
-        .notEmpty().withMessage('Role is required')
-        .isInt({ min: 1, max: 5 }).withMessage('Role must be an integer between 1 and 5')
+        .notEmpty()
+        .withMessage('Role is required')
+        .isInt({ min: 1, max: 5 })
+        .withMessage('Role must be an integer between 1 and 5')
         .toInt(),
-    handleValidationErrors
+    handleValidationErrors,
 ];
 
 /**
@@ -296,19 +359,24 @@ export const validateAdminRoleChange = [
 export const validateAdminUsersList = [
     query('page')
         .optional()
-        .isInt({ min: 1 }).withMessage('Page must be a positive integer')
+        .isInt({ min: 1 })
+        .withMessage('Page must be a positive integer')
         .toInt(),
     query('limit')
         .optional()
-        .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
+        .isInt({ min: 1, max: 100 })
+        .withMessage('Limit must be between 1 and 100')
         .toInt(),
     query('status')
         .optional()
         .isIn(['active', 'pending', 'suspended', 'locked', 'deleted'])
-        .withMessage('Status must be one of: active, pending, suspended, locked, deleted'),
+        .withMessage(
+            'Status must be one of: active, pending, suspended, locked, deleted'
+        ),
     query('role')
         .optional()
-        .isInt({ min: 1, max: 5 }).withMessage('Role must be an integer between 1 and 5')
+        .isInt({ min: 1, max: 5 })
+        .withMessage('Role must be an integer between 1 and 5')
         .toInt(),
-    handleValidationErrors
+    handleValidationErrors,
 ];

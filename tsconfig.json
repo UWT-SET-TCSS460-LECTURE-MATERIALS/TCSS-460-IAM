@@ -1,34 +1,34 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "commonjs",
+        "lib": ["ES2020"],
+        "outDir": "./dist",
+        "rootDir": "./src",
 
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "moduleResolution": "node",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "moduleResolution": "node",
 
-    // Path mapping configuration
-    "baseUrl": "./src",
-    "paths": {
-      "@core/*": ["core/*"],
-      "@routes/*": ["routes/*"],
-      "@controllers": ["controllers/index"],
-      "@utilities": ["core/utilities/index"],
-      "@middleware": ["core/middleware/index"],
-      "@models": ["core/models/index"],
-      "@lib/*": ["lib/*"],                         // Library utilities (Prisma, etc.)
-      "@db": ["core/utilities/database"],             // Direct access to database (legacy)
-      "@auth": ["core/utilities/credentialingUtils"]   // Auth utilities
-    }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+        // Path mapping configuration
+        "baseUrl": "./src",
+        "paths": {
+            "@core/*": ["core/*"],
+            "@routes/*": ["routes/*"],
+            "@controllers": ["controllers/index"],
+            "@utilities": ["core/utilities/index"],
+            "@middleware": ["core/middleware/index"],
+            "@models": ["core/models/index"],
+            "@lib/*": ["lib/*"], // Library utilities (Prisma, etc.)
+            "@db": ["core/utilities/database"], // Direct access to database (legacy)
+            "@auth": ["core/utilities/credentialingUtils"] // Auth utilities
+        }
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

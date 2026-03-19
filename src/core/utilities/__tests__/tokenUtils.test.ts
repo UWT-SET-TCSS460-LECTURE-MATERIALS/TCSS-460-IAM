@@ -19,7 +19,10 @@ describe('tokenUtils', () => {
 
         it('should generate a valid JWT with base claims', () => {
             const token = generateAccessToken(basePayload);
-            const decoded = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
+            const decoded = jwt.verify(token, JWT_SECRET) as Record<
+                string,
+                unknown
+            >;
 
             expect(decoded.id).toBe(42);
             expect(decoded.email).toBe('test@example.com');
@@ -35,7 +38,10 @@ describe('tokenUtils', () => {
                 tenant: 'tcss460-sp26',
             };
             const token = generateAccessToken(payload);
-            const decoded = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
+            const decoded = jwt.verify(token, JWT_SECRET) as Record<
+                string,
+                unknown
+            >;
 
             expect(decoded.sub).toBe('42');
             expect(decoded.tenant).toBe('tcss460-sp26');
@@ -61,7 +67,11 @@ describe('tokenUtils', () => {
 
         it('should produce a token verifiable by verifyToken', () => {
             const token = generateAccessToken(basePayload);
-            const decoded = verifyToken<{ id: number; email: string; role: number }>(token);
+            const decoded = verifyToken<{
+                id: number;
+                email: string;
+                role: number;
+            }>(token);
 
             expect(decoded.id).toBe(basePayload.id);
             expect(decoded.email).toBe(basePayload.email);

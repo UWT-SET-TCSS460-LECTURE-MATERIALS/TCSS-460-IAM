@@ -54,7 +54,9 @@ export const createApp = (): Express => {
         const swaggerDocument = YAML.load('./docs/swagger.yaml');
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     } catch (error) {
-        console.warn('⚠️ Swagger documentation not found at ./docs/swagger.yaml');
+        console.warn(
+            '⚠️ Swagger documentation not found at ./docs/swagger.yaml'
+        );
     }
 
     // Routes (mounted after public endpoints)

@@ -2,11 +2,10 @@ import {
     isStringProvided,
     isValidEmail,
     isValidPhone,
-    isValidRole
+    isValidRole,
 } from '@utilities';
 
 describe('validationUtils', () => {
-
     describe('isStringProvided', () => {
         it('should return true for non-empty strings', () => {
             expect(isStringProvided('hello')).toBe(true);
@@ -50,10 +49,6 @@ describe('validationUtils', () => {
     });
 
     describe('isValidEmail', () => {
-
-
-
-
         it('should handle edge cases', () => {
             expect(isValidEmail('a@b.c')).toBe(true); // Minimal valid email
             expect(isValidEmail('user+tag@example.com')).toBe(true); // Plus addressing
@@ -84,14 +79,14 @@ describe('validationUtils', () => {
             'user@subdomain.example.com',
             'user@example.co.uk',
             'user123@test-domain.com',
-            'CAPS@EXAMPLE.COM'
-        ].map(email => ([email, true]));
+            'CAPS@EXAMPLE.COM',
+        ].map((email) => [email, true]);
         test.each(validEmails)(
             'isValidEmail("%s") should return %s',
             (input, expected) => {
                 expect(isValidEmail(input.toString())).toBe(expected);
             }
-        )
+        );
     });
 
     describe('isValidEmail: should return false for invalid email addresses', () => {
@@ -115,14 +110,14 @@ describe('validationUtils', () => {
             'user@exam ple.com',
             'user@example..com',
             'user.@example.com',
-            '.user@example.com'
-        ].map(email => ([email, false]));
+            '.user@example.com',
+        ].map((email) => [email, false]);
         test.each(invalidEmails)(
             'isValidEmail("%s") should return %s',
             (input, expected) => {
                 expect(isValidEmail(input.toString())).toBe(expected);
             }
-        )
+        );
     });
 
     describe('isValidPhone', () => {
@@ -138,10 +133,10 @@ describe('validationUtils', () => {
                 '+12345678900',
                 '001-234-567-8900',
                 '1-234-567-8900',
-                '+1 (234) 567-8900'
+                '+1 (234) 567-8900',
             ];
 
-            validPhones.forEach(phone => {
+            validPhones.forEach((phone) => {
                 expect(isValidPhone(phone)).toBe(true);
             });
         });
@@ -158,10 +153,10 @@ describe('validationUtils', () => {
                 '123-456',
                 '(123) 456',
                 '12 34 56',
-                'notaphone'
+                'notaphone',
             ];
 
-            invalidPhones.forEach(phone => {
+            invalidPhones.forEach((phone) => {
                 expect(isValidPhone(phone)).toBe(false);
             });
         });
@@ -278,7 +273,7 @@ describe('validationUtils', () => {
                 email: 'john.doe@example.com',
                 username: 'johndoe',
                 role: '3',
-                phone: '(555) 123-4567'
+                phone: '(555) 123-4567',
             };
 
             expect(isStringProvided(validData.firstname)).toBe(true);
@@ -297,7 +292,7 @@ describe('validationUtils', () => {
                 email: 'not-an-email',
                 username: null,
                 role: '10',
-                phone: '123'
+                phone: '123',
             };
 
             expect(isStringProvided(invalidData.firstname)).toBe(false);
@@ -310,14 +305,30 @@ describe('validationUtils', () => {
 
         it('should handle mixed valid and invalid data', () => {
             const mixedData = [
-                { value: 'valid@email.com', validator: isValidEmail, expected: true },
-                { value: 'invalid-email', validator: isValidEmail, expected: false },
-                { value: '1234567890', validator: isValidPhone, expected: true },
+                {
+                    value: 'valid@email.com',
+                    validator: isValidEmail,
+                    expected: true,
+                },
+                {
+                    value: 'invalid-email',
+                    validator: isValidEmail,
+                    expected: false,
+                },
+                {
+                    value: '1234567890',
+                    validator: isValidPhone,
+                    expected: true,
+                },
                 { value: '123', validator: isValidPhone, expected: false },
                 { value: '3', validator: isValidRole, expected: true },
                 { value: '10', validator: isValidRole, expected: false },
-                { value: 'username', validator: isStringProvided, expected: true },
-                { value: '', validator: isStringProvided, expected: false }
+                {
+                    value: 'username',
+                    validator: isStringProvided,
+                    expected: true,
+                },
+                { value: '', validator: isStringProvided, expected: false },
             ];
 
             mixedData.forEach(({ value, validator, expected }) => {
@@ -395,7 +406,8 @@ describe('validationUtils', () => {
 
         it('should handle extremely long strings without crashing', () => {
             const longString = 'a'.repeat(10000);
-            const longEmail = 'a'.repeat(5000) + '@' + 'b'.repeat(5000) + '.com';
+            const longEmail =
+                'a'.repeat(5000) + '@' + 'b'.repeat(5000) + '.com';
             const longPhone = '1'.repeat(10000);
 
             expect(() => isStringProvided(longString)).not.toThrow();

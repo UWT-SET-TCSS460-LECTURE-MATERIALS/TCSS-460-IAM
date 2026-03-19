@@ -122,7 +122,9 @@ async function main() {
             },
         },
     });
-    console.log(`  Created pending user: ${pending.email} (status: ${pending.accountStatus})`);
+    console.log(
+        `  Created pending user: ${pending.email} (status: ${pending.accountStatus})`
+    );
 
     // ============================================================
     // Tenant + OAuth Client Seed Data
@@ -178,7 +180,9 @@ async function main() {
             ],
         },
     });
-    console.log(`  Created OAuth client: tcss460-dev-shared (secret: ${devClientSecret.substring(0, 8)}...)`);
+    console.log(
+        `  Created OAuth client: tcss460-dev-shared (secret: ${devClientSecret.substring(0, 8)}...)`
+    );
 
     // Create AI Tutor OAuth client
     const aiTutorClientSecret = crypto.randomBytes(32).toString('hex');
@@ -190,38 +194,70 @@ async function main() {
             clientSecret: aiTutorClientSecret,
             clientName: 'AI Tutor Application',
             tenantId: 'ai-tutor',
-            redirectUris: [
-                'http://localhost:3001/api/auth/callback/tcss460',
-            ],
+            redirectUris: ['http://localhost:3001/api/auth/callback/tcss460'],
         },
     });
-    console.log(`  Created OAuth client: ai-tutor-app (secret: ${aiTutorClientSecret.substring(0, 8)}...)`);
+    console.log(
+        `  Created OAuth client: ai-tutor-app (secret: ${aiTutorClientSecret.substring(0, 8)}...)`
+    );
 
     // Create tenant memberships for seed accounts
     // Owner gets Owner role in both tenants
     await prisma.tenantMembership.upsert({
-        where: { accountId_tenantId: { accountId: owner.accountId, tenantId: 'tcss460-sp26' } },
+        where: {
+            accountId_tenantId: {
+                accountId: owner.accountId,
+                tenantId: 'tcss460-sp26',
+            },
+        },
         update: {},
-        create: { accountId: owner.accountId, tenantId: 'tcss460-sp26', role: 5 },
+        create: {
+            accountId: owner.accountId,
+            tenantId: 'tcss460-sp26',
+            role: 5,
+        },
     });
     await prisma.tenantMembership.upsert({
-        where: { accountId_tenantId: { accountId: owner.accountId, tenantId: 'ai-tutor' } },
+        where: {
+            accountId_tenantId: {
+                accountId: owner.accountId,
+                tenantId: 'ai-tutor',
+            },
+        },
         update: {},
         create: { accountId: owner.accountId, tenantId: 'ai-tutor', role: 5 },
     });
 
     // Admin gets Admin role in TCSS 460
     await prisma.tenantMembership.upsert({
-        where: { accountId_tenantId: { accountId: admin.accountId, tenantId: 'tcss460-sp26' } },
+        where: {
+            accountId_tenantId: {
+                accountId: admin.accountId,
+                tenantId: 'tcss460-sp26',
+            },
+        },
         update: {},
-        create: { accountId: admin.accountId, tenantId: 'tcss460-sp26', role: 3 },
+        create: {
+            accountId: admin.accountId,
+            tenantId: 'tcss460-sp26',
+            role: 3,
+        },
     });
 
     // Test user gets User role in TCSS 460
     await prisma.tenantMembership.upsert({
-        where: { accountId_tenantId: { accountId: user.accountId, tenantId: 'tcss460-sp26' } },
+        where: {
+            accountId_tenantId: {
+                accountId: user.accountId,
+                tenantId: 'tcss460-sp26',
+            },
+        },
         update: {},
-        create: { accountId: user.accountId, tenantId: 'tcss460-sp26', role: 1 },
+        create: {
+            accountId: user.accountId,
+            tenantId: 'tcss460-sp26',
+            role: 1,
+        },
     });
 
     console.log('  Created tenant memberships for seed accounts');

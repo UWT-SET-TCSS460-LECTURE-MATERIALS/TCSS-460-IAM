@@ -1,6 +1,9 @@
 // src/services/verification.service.ts
 import { prisma } from '../lib/prisma';
-import { generateSecureToken, generateVerificationCode } from '../core/utilities/credentialingUtils';
+import {
+    generateSecureToken,
+    generateVerificationCode,
+} from '../core/utilities/credentialingUtils';
 import { ErrorCodes } from '../core/utilities/errorCodes';
 
 export interface ServiceResult<T> {
@@ -13,21 +16,40 @@ export const verificationService = {
     /**
      * Get account info for email verification
      */
-    async getAccountForEmailVerification(userId: number): Promise<ServiceResult<{ firstname: string; email: string }>> {
+    async getAccountForEmailVerification(
+        userId: number
+    ): Promise<ServiceResult<{ firstname: string; email: string }>> {
         const account = await prisma.account.findUnique({
             where: { accountId: userId },
             select: { firstName: true, email: true, emailVerified: true },
         });
 
         if (!account) {
-            return { success: false, error: { status: 404, message: 'User not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         if (account.emailVerified) {
-            return { success: false, error: { status: 400, message: 'Email is already verified', code: ErrorCodes.VRFY_ALREADY_VERIFIED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Email is already verified',
+                    code: ErrorCodes.VRFY_ALREADY_VERIFIED,
+                },
+            };
         }
 
-        return { success: true, data: { firstname: account.firstName, email: account.email } };
+        return {
+            success: true,
+            data: { firstname: account.firstName, email: account.email },
+        };
     },
 
     /**
@@ -48,9 +70,14 @@ export const verificationService = {
     /**
      * Create email verification token
      */
-    async createEmailVerification(userId: number, email: string): Promise<string> {
+    async createEmailVerification(
+        userId: number,
+        email: string
+    ): Promise<string> {
         // Delete old tokens
-        await prisma.emailVerification.deleteMany({ where: { accountId: userId } });
+        await prisma.emailVerification.deleteMany({
+            where: { accountId: userId },
+        });
 
         const token = generateSecureToken();
         const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
@@ -70,22 +97,47 @@ export const verificationService = {
     /**
      * Confirm email verification token
      */
-    async confirmEmailVerification(token: string): Promise<ServiceResult<null>> {
+    async confirmEmailVerification(
+        token: string
+    ): Promise<ServiceResult<null>> {
         const verification = await prisma.emailVerification.findUnique({
             where: { verificationToken: token },
-            include: { account: { select: { emailVerified: true, accountId: true } } },
+            include: {
+                account: { select: { emailVerified: true, accountId: true } },
+            },
         });
 
         if (!verification) {
-            return { success: false, error: { status: 400, message: 'Invalid verification token', code: ErrorCodes.VRFY_INVALID_TOKEN } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Invalid verification token',
+                    code: ErrorCodes.VRFY_INVALID_TOKEN,
+                },
+            };
         }
 
         if (verification.account.emailVerified) {
-            return { success: false, error: { status: 400, message: 'Email is already verified', code: ErrorCodes.VRFY_ALREADY_VERIFIED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Email is already verified',
+                    code: ErrorCodes.VRFY_ALREADY_VERIFIED,
+                },
+            };
         }
 
         if (new Date() > verification.tokenExpires) {
-            return { success: false, error: { status: 400, message: 'Verification token has expired', code: ErrorCodes.VRFY_TOKEN_EXPIRED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Verification token has expired',
+                    code: ErrorCodes.VRFY_TOKEN_EXPIRED,
+                },
+            };
         }
 
         await prisma.$transaction([
@@ -93,7 +145,9 @@ export const verificationService = {
                 where: { accountId: verification.accountId },
                 data: { emailVerified: true, updatedAt: new Date() },
             }),
-            prisma.emailVerification.deleteMany({ where: { accountId: verification.accountId } }),
+            prisma.emailVerification.deleteMany({
+                where: { accountId: verification.accountId },
+            }),
         ]);
 
         return { success: true };
@@ -102,21 +156,40 @@ export const verificationService = {
     /**
      * Get account info for phone verification
      */
-    async getAccountForPhoneVerification(userId: number): Promise<ServiceResult<{ firstname: string; phone: string }>> {
+    async getAccountForPhoneVerification(
+        userId: number
+    ): Promise<ServiceResult<{ firstname: string; phone: string }>> {
         const account = await prisma.account.findUnique({
             where: { accountId: userId },
             select: { firstName: true, phone: true, phoneVerified: true },
         });
 
         if (!account) {
-            return { success: false, error: { status: 404, message: 'User not found', code: ErrorCodes.USER_NOT_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
         }
 
         if (account.phoneVerified) {
-            return { success: false, error: { status: 400, message: 'Phone is already verified', code: ErrorCodes.VRFY_ALREADY_VERIFIED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Phone is already verified',
+                    code: ErrorCodes.VRFY_ALREADY_VERIFIED,
+                },
+            };
         }
 
-        return { success: true, data: { firstname: account.firstName, phone: account.phone } };
+        return {
+            success: true,
+            data: { firstname: account.firstName, phone: account.phone },
+        };
     },
 
     /**
@@ -137,9 +210,14 @@ export const verificationService = {
     /**
      * Create SMS verification code
      */
-    async createSmsVerification(userId: number, phone: string): Promise<string> {
+    async createSmsVerification(
+        userId: number,
+        phone: string
+    ): Promise<string> {
         // Delete old codes
-        await prisma.phoneVerification.deleteMany({ where: { accountId: userId } });
+        await prisma.phoneVerification.deleteMany({
+            where: { accountId: userId },
+        });
 
         const code = generateVerificationCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
@@ -160,26 +238,59 @@ export const verificationService = {
     /**
      * Verify SMS code
      */
-    async verifySmsCode(userId: number, code: string): Promise<ServiceResult<null>> {
+    async verifySmsCode(
+        userId: number,
+        code: string
+    ): Promise<ServiceResult<null>> {
         const verification = await prisma.phoneVerification.findFirst({
             where: { accountId: userId },
             include: { account: { select: { phoneVerified: true } } },
         });
 
         if (!verification) {
-            return { success: false, error: { status: 400, message: 'No verification code found. Please request a new code.', code: ErrorCodes.VRFY_NO_CODE_FOUND } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message:
+                        'No verification code found. Please request a new code.',
+                    code: ErrorCodes.VRFY_NO_CODE_FOUND,
+                },
+            };
         }
 
         if (verification.account.phoneVerified) {
-            return { success: false, error: { status: 400, message: 'Phone is already verified', code: ErrorCodes.VRFY_ALREADY_VERIFIED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Phone is already verified',
+                    code: ErrorCodes.VRFY_ALREADY_VERIFIED,
+                },
+            };
         }
 
         if (new Date() > verification.codeExpires) {
-            return { success: false, error: { status: 400, message: 'Verification code has expired', code: ErrorCodes.VRFY_CODE_EXPIRED } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: 'Verification code has expired',
+                    code: ErrorCodes.VRFY_CODE_EXPIRED,
+                },
+            };
         }
 
         if (verification.attempts >= 3) {
-            return { success: false, error: { status: 400, message: 'Too many failed attempts. Please request a new code.', code: ErrorCodes.VRFY_TOO_MANY_ATTEMPTS } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message:
+                        'Too many failed attempts. Please request a new code.',
+                    code: ErrorCodes.VRFY_TOO_MANY_ATTEMPTS,
+                },
+            };
         }
 
         if (verification.verificationCode !== code) {
@@ -188,7 +299,14 @@ export const verificationService = {
                 data: { attempts: { increment: 1 } },
             });
             const remaining = 3 - (verification.attempts + 1);
-            return { success: false, error: { status: 400, message: `Invalid verification code. ${remaining} attempts remaining.`, code: ErrorCodes.VRFY_INVALID_CODE } };
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: `Invalid verification code. ${remaining} attempts remaining.`,
+                    code: ErrorCodes.VRFY_INVALID_CODE,
+                },
+            };
         }
 
         await prisma.$transaction([
@@ -196,7 +314,9 @@ export const verificationService = {
                 where: { accountId: userId },
                 data: { phoneVerified: true, updatedAt: new Date() },
             }),
-            prisma.phoneVerification.deleteMany({ where: { accountId: userId } }),
+            prisma.phoneVerification.deleteMany({
+                where: { accountId: userId },
+            }),
         ]);
 
         return { success: true };

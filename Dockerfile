@@ -1,21 +1,18 @@
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 WORKDIR /app
+
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 COPY tsconfig.json ./
-RUN npm ci --include=dev
-COPY src ./src/
-RUN npx prisma generate && npm run build
 
-FROM node:22-alpine AS production
-WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY prisma.config.ts ./
-RUN npm ci --omit=dev && npx prisma generate
-COPY --from=builder /app/dist ./dist/
+RUN npm ci --include=dev
+
+COPY src ./src/
 COPY public ./public/
 COPY docs ./docs/
+
+RUN npx prisma generate && npm run build
+
 EXPOSE 8000
 CMD ["npm", "start"]

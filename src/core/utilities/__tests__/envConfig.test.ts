@@ -1,4 +1,10 @@
-import { validateEnv, getEnvVar, isProduction, isDevelopment, isTest } from '../envConfig';
+import {
+    validateEnv,
+    getEnvVar,
+    isProduction,
+    isDevelopment,
+    isTest,
+} from '../envConfig';
 
 describe('envConfig', () => {
     let originalEnv: NodeJS.ProcessEnv;
@@ -38,21 +44,32 @@ describe('envConfig', () => {
 
             // Mock console methods
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleErrorSpy = jest
+                .spyOn(console, 'error')
+                .mockImplementation();
 
             expect(() => validateEnv()).not.toThrow();
             expect(consoleErrorSpy).not.toHaveBeenCalled();
-            expect(consoleSpy).toHaveBeenCalledWith('✅ Environment variables validated successfully');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '✅ Environment variables validated successfully'
+            );
 
             consoleSpy.mockRestore();
             consoleErrorSpy.mockRestore();
         });
 
         it('should throw error when required variables are missing', () => {
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleErrorSpy = jest
+                .spyOn(console, 'error')
+                .mockImplementation();
 
-            expect(() => validateEnv()).toThrow('Missing required environment variables: JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD');
-            expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Missing required environment variables:', 'JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD');
+            expect(() => validateEnv()).toThrow(
+                'Missing required environment variables: JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD'
+            );
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                '❌ Missing required environment variables:',
+                'JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD'
+            );
 
             consoleErrorSpy.mockRestore();
         });
@@ -62,10 +79,17 @@ describe('envConfig', () => {
             process.env.EMAIL_USER = 'test@example.com';
             // Missing DATABASE_URL and EMAIL_PASSWORD
 
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleErrorSpy = jest
+                .spyOn(console, 'error')
+                .mockImplementation();
 
-            expect(() => validateEnv()).toThrow('Missing required environment variables: DATABASE_URL, EMAIL_PASSWORD');
-            expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Missing required environment variables:', 'DATABASE_URL, EMAIL_PASSWORD');
+            expect(() => validateEnv()).toThrow(
+                'Missing required environment variables: DATABASE_URL, EMAIL_PASSWORD'
+            );
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                '❌ Missing required environment variables:',
+                'DATABASE_URL, EMAIL_PASSWORD'
+            );
 
             consoleErrorSpy.mockRestore();
         });
@@ -85,7 +109,9 @@ describe('envConfig', () => {
             expect(process.env.PORT).toBe('8000');
             expect(process.env.NODE_ENV).toBe('development');
             expect(process.env.EMAIL_SERVICE).toBe('gmail');
-            expect(process.env.EMAIL_FROM).toBe('Auth² Service <noreply@auth2.com>');
+            expect(process.env.EMAIL_FROM).toBe(
+                'Auth² Service <noreply@auth2.com>'
+            );
             expect(process.env.SEND_EMAILS).toBe('false');
             expect(process.env.SEND_SMS_EMAILS).toBe('false');
             expect(process.env.APP_BASE_URL).toBe('http://localhost:8000');
@@ -117,7 +143,9 @@ describe('envConfig', () => {
             expect(process.env.EMAIL_SERVICE).toBe('outlook');
 
             // Check that missing optionals got defaults
-            expect(process.env.EMAIL_FROM).toBe('Auth² Service <noreply@auth2.com>');
+            expect(process.env.EMAIL_FROM).toBe(
+                'Auth² Service <noreply@auth2.com>'
+            );
             expect(process.env.SEND_EMAILS).toBe('false');
 
             consoleSpy.mockRestore();
@@ -134,9 +162,15 @@ describe('envConfig', () => {
 
             validateEnv();
 
-            expect(consoleSpy).toHaveBeenCalledWith('ℹ️ Using default value for PORT: 8000');
-            expect(consoleSpy).toHaveBeenCalledWith('ℹ️ Using default value for NODE_ENV: development');
-            expect(consoleSpy).toHaveBeenCalledWith('✅ Environment variables validated successfully');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'ℹ️ Using default value for PORT: 8000'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'ℹ️ Using default value for NODE_ENV: development'
+            );
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '✅ Environment variables validated successfully'
+            );
 
             consoleSpy.mockRestore();
         });
@@ -156,7 +190,9 @@ describe('envConfig', () => {
         });
 
         it('should throw error when environment variable does not exist and no default provided', () => {
-            expect(() => getEnvVar('NON_EXISTENT_VAR')).toThrow('Environment variable NON_EXISTENT_VAR is not set and no default provided');
+            expect(() => getEnvVar('NON_EXISTENT_VAR')).toThrow(
+                'Environment variable NON_EXISTENT_VAR is not set and no default provided'
+            );
         });
 
         it('should prefer environment variable over default', () => {
@@ -169,7 +205,9 @@ describe('envConfig', () => {
         it('should handle empty string environment variables', () => {
             process.env.EMPTY_VAR = '';
 
-            expect(() => getEnvVar('EMPTY_VAR')).toThrow('Environment variable EMPTY_VAR is not set and no default provided');
+            expect(() => getEnvVar('EMPTY_VAR')).toThrow(
+                'Environment variable EMPTY_VAR is not set and no default provided'
+            );
         });
 
         it('should use default for empty string environment variables', () => {
@@ -309,8 +347,18 @@ describe('envConfig', () => {
 
         it('should handle different environment scenarios', () => {
             const scenarios = [
-                { env: 'development', isDev: true, isProd: false, isTest: false },
-                { env: 'production', isDev: false, isProd: true, isTest: false },
+                {
+                    env: 'development',
+                    isDev: true,
+                    isProd: false,
+                    isTest: false,
+                },
+                {
+                    env: 'production',
+                    isDev: false,
+                    isProd: true,
+                    isTest: false,
+                },
                 { env: 'test', isDev: false, isProd: false, isTest: true },
                 { env: 'staging', isDev: false, isProd: false, isTest: false },
             ];
@@ -347,7 +395,9 @@ describe('envConfig', () => {
             process.env.JWT_SECRET = 'present';
             // Missing other required variables
 
-            expect(() => validateEnv()).toThrow(/Missing required environment variables.*DATABASE_URL.*EMAIL_USER.*EMAIL_PASSWORD/);
+            expect(() => validateEnv()).toThrow(
+                /Missing required environment variables.*DATABASE_URL.*EMAIL_USER.*EMAIL_PASSWORD/
+            );
         });
 
         it('should handle partial validation failures gracefully', () => {
@@ -355,7 +405,9 @@ describe('envConfig', () => {
             process.env.DATABASE_URL = 'postgresql://test';
             // Missing EMAIL_USER and EMAIL_PASSWORD
 
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleErrorSpy = jest
+                .spyOn(console, 'error')
+                .mockImplementation();
 
             expect(() => validateEnv()).toThrow();
             expect(consoleErrorSpy).toHaveBeenCalled();

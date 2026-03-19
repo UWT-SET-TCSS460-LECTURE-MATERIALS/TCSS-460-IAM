@@ -10,10 +10,10 @@ module.exports = {
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/*.d.ts',
-        '!src/index.ts',  // Don't test the main server file
+        '!src/index.ts', // Don't test the main server file
         '!src/**/*.test.ts',
         '!src/**/*.spec.ts',
-        '!src/generated/**',  // Don't test Prisma generated code
+        '!src/generated/**', // Don't test Prisma generated code
     ],
 
     // Handle your TypeScript path mappings

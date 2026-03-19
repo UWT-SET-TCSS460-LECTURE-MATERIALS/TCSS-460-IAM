@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateAuthorizeRequest, validateTokenRequest } from '../oauthValidation';
+import {
+    validateAuthorizeRequest,
+    validateTokenRequest,
+} from '../oauthValidation';
 
 describe('oauthValidation', () => {
     let mockRequest: Partial<Request>;
@@ -41,7 +44,11 @@ describe('oauthValidation', () => {
         it('should call next() with valid query params', () => {
             mockRequest.query = { ...validQuery };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(nextMock).toHaveBeenCalled();
             expect(statusMock).not.toHaveBeenCalled();
@@ -51,7 +58,11 @@ describe('oauthValidation', () => {
             mockRequest.query = { ...validQuery, client_id: undefined } as any;
             delete mockRequest.query!.client_id;
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -65,7 +76,11 @@ describe('oauthValidation', () => {
             mockRequest.query = { ...validQuery };
             delete mockRequest.query!.redirect_uri;
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -79,7 +94,11 @@ describe('oauthValidation', () => {
             mockRequest.query = { ...validQuery };
             delete mockRequest.query!.response_type;
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -92,7 +111,11 @@ describe('oauthValidation', () => {
         it('should return 400 when response_type is not code', () => {
             mockRequest.query = { ...validQuery, response_type: 'token' };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -106,7 +129,11 @@ describe('oauthValidation', () => {
             mockRequest.query = { ...validQuery };
             delete mockRequest.query!.state;
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
@@ -123,7 +150,11 @@ describe('oauthValidation', () => {
                 code_challenge_method: 'S256',
             };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(nextMock).toHaveBeenCalled();
             expect(statusMock).not.toHaveBeenCalled();
@@ -136,7 +167,11 @@ describe('oauthValidation', () => {
                 code_challenge_method: 'plain',
             };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(nextMock).toHaveBeenCalled();
             expect(statusMock).not.toHaveBeenCalled();
@@ -149,12 +184,17 @@ describe('oauthValidation', () => {
                 code_challenge_method: 'invalid',
             };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(statusMock).toHaveBeenCalledWith(400);
             expect(jsonMock).toHaveBeenCalledWith({
                 error: 'invalid_request',
-                error_description: 'code_challenge_method must be S256 or plain',
+                error_description:
+                    'code_challenge_method must be S256 or plain',
             });
             expect(nextMock).not.toHaveBeenCalled();
         });
@@ -165,7 +205,11 @@ describe('oauthValidation', () => {
                 code_challenge: 'abc123challenge',
             };
 
-            validateAuthorizeRequest(mockRequest as Request, mockResponse as Response, nextMock);
+            validateAuthorizeRequest(
+                mockRequest as Request,
+                mockResponse as Response,
+                nextMock
+            );
 
             expect(nextMock).toHaveBeenCalled();
             expect(statusMock).not.toHaveBeenCalled();
@@ -181,7 +225,11 @@ describe('oauthValidation', () => {
             it('should return 400 when grant_type is missing', () => {
                 mockRequest.body = {};
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -194,12 +242,17 @@ describe('oauthValidation', () => {
             it('should return 400 when grant_type is unsupported', () => {
                 mockRequest.body = { grant_type: 'client_credentials' };
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
                     error: 'unsupported_grant_type',
-                    error_description: 'Only authorization_code and refresh_token grant types are supported',
+                    error_description:
+                        'Only authorization_code and refresh_token grant types are supported',
                 });
                 expect(nextMock).not.toHaveBeenCalled();
             });
@@ -217,16 +270,27 @@ describe('oauthValidation', () => {
             it('should call next() with valid authorization_code params', () => {
                 mockRequest.body = { ...validBody };
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(nextMock).toHaveBeenCalled();
                 expect(statusMock).not.toHaveBeenCalled();
             });
 
             it('should call next() with optional code_verifier', () => {
-                mockRequest.body = { ...validBody, code_verifier: 'pkce-verifier' };
+                mockRequest.body = {
+                    ...validBody,
+                    code_verifier: 'pkce-verifier',
+                };
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(nextMock).toHaveBeenCalled();
                 expect(statusMock).not.toHaveBeenCalled();
@@ -236,7 +300,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.code;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -250,7 +318,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.redirect_uri;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -264,7 +336,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.client_id;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -278,7 +354,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.client_secret;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -300,7 +380,11 @@ describe('oauthValidation', () => {
             it('should call next() with valid refresh_token params', () => {
                 mockRequest.body = { ...validBody };
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(nextMock).toHaveBeenCalled();
                 expect(statusMock).not.toHaveBeenCalled();
@@ -310,7 +394,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.refresh_token;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -324,7 +412,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.client_id;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({
@@ -338,7 +430,11 @@ describe('oauthValidation', () => {
                 mockRequest.body = { ...validBody };
                 delete mockRequest.body.client_secret;
 
-                validateTokenRequest(mockRequest as Request, mockResponse as Response, nextMock);
+                validateTokenRequest(
+                    mockRequest as Request,
+                    mockResponse as Response,
+                    nextMock
+                );
 
                 expect(statusMock).toHaveBeenCalledWith(400);
                 expect(jsonMock).toHaveBeenCalledWith({

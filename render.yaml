@@ -1,26 +1,26 @@
 services:
-  - type: web
-    name: auth-squared
-    runtime: node
-    plan: free
-    buildCommand: npm ci --include=dev && npx prisma generate && npx prisma migrate deploy && npm run build
-    startCommand: npm run start
-    healthCheckPath: /health
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: auth-squared-db
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: "8000"
-      - key: SEND_EMAILS
-        value: "false"
+    - type: web
+      name: auth-squared
+      runtime: node
+      plan: free
+      buildCommand: npm ci --include=dev && npx prisma generate && npx prisma migrate deploy && npm run build
+      startCommand: npm run start
+      healthCheckPath: /health
+      envVars:
+          - key: DATABASE_URL
+            fromDatabase:
+                name: auth-squared-db
+                property: connectionString
+          - key: JWT_SECRET
+            generateValue: true
+          - key: NODE_ENV
+            value: production
+          - key: PORT
+            value: '8000'
+          - key: SEND_EMAILS
+            value: 'false'
 
 databases:
-  - name: auth-squared-db
-    plan: free
-    databaseName: auth_squared
+    - name: auth-squared-db
+      plan: free
+      databaseName: auth_squared
