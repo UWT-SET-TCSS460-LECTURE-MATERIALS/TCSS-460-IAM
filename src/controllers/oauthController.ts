@@ -379,12 +379,10 @@ export class OAuthController {
         response: Response
     ): Promise<void> {
         if (!request.claims) {
-            response
-                .status(401)
-                .json({
-                    error: 'invalid_token',
-                    error_description: 'Access token required',
-                });
+            response.status(401).json({
+                error: 'invalid_token',
+                error_description: 'Access token required',
+            });
             return;
         }
 
