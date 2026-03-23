@@ -9,6 +9,16 @@ import {
 } from '../core/utilities/tokenUtils';
 import { RoleName, UserRole } from '../core/models';
 
+/**
+ * Timing-safe string comparison to prevent timing attacks on secret values.
+ */
+function timingSafeCompare(a: string, b: string): boolean {
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+}
+
 export interface OAuthError {
     error: string;
     error_description: string;
@@ -226,7 +236,10 @@ export const oauthService = {
             include: { tenant: true },
         });
 
-        if (!client || client.clientSecret !== params.clientSecret) {
+        if (
+            !client ||
+            !timingSafeCompare(client.clientSecret, params.clientSecret)
+        ) {
             return {
                 success: false,
                 error: {
@@ -408,7 +421,10 @@ export const oauthService = {
             where: { clientId: params.clientId },
         });
 
-        if (!client || client.clientSecret !== params.clientSecret) {
+        if (
+            !client ||
+            !timingSafeCompare(client.clientSecret, params.clientSecret)
+        ) {
             return {
                 success: false,
                 error: {

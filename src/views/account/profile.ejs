@@ -92,9 +92,14 @@
 
                     <hr>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="/account/change-password" class="btn btn-outline-primary btn-sm">Change Password</a>
-                        <a href="/account/delete" class="btn btn-outline-danger btn-sm">Delete Account</a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/account/change-password" class="btn btn-outline-primary btn-sm">Change Password</a>
+                            <a href="/account/delete" class="btn btn-outline-danger btn-sm ms-1">Delete Account</a>
+                        </div>
+                        <form method="POST" action="/account/logout" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Sign Out</button>
+                        </form>
                     </div>
                 <% } else { %>
                     <p class="text-muted text-center">Unable to load profile information.</p>

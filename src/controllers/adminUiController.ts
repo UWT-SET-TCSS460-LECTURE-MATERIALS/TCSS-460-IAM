@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { JwtRequest, RoleName, UserRole } from '@models';
 import { tenantAdminService } from '../services/tenantAdmin.service';
 import { authService } from '../services/auth.service';
+import { adminService } from '../services/admin.service';
 import { generateAccessToken } from '../core/utilities/tokenUtils';
 
 export class AdminUiController {
@@ -37,7 +38,7 @@ export class AdminUiController {
             // Check owner role
             if (result.data!.user.role !== 'Owner') {
                 response.render('admin/login', {
-                    error: 'Owner access required',
+                    error: 'Only Owner-level accounts can access the admin panel.',
                 });
                 return;
             }
@@ -679,6 +680,54 @@ export class AdminUiController {
             console.error('Admin UI remove member error:', error);
             response.redirect(
                 `/admin/ui/tenants/${tenantId}?error=Failed+to+remove+member`
+            );
+        }
+    }
+
+    /**
+     * Reset member password (owner only)
+     * POST /admin/ui/tenants/:id/members/:accountId/reset-password
+     */
+    static async resetMemberPassword(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const accountId = parseInt(request.params.accountId);
+        const { password } = request.body;
+
+        if (isNaN(accountId)) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Invalid+account+ID`
+            );
+            return;
+        }
+
+        if (!password || password.length < 8) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Password+must+be+at+least+8+characters`
+            );
+            return;
+        }
+
+        try {
+            const result = await adminService.resetUserPassword(
+                accountId,
+                password
+            );
+            if (!result.success) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
+                );
+                return;
+            }
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?success=Password+reset+successfully`
+            );
+        } catch (error) {
+            console.error('Admin UI reset password error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+reset+password`
             );
         }
     }

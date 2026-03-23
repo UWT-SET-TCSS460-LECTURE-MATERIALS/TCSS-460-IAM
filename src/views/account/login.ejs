@@ -19,7 +19,7 @@
     <div class="container">
         <div class="card auth-card shadow-sm">
             <div class="card-body p-4">
-                <h4 class="card-title text-center mb-4">Reset Password</h4>
+                <h4 class="card-title text-center mb-4">Sign In to Auth&sup2;</h4>
 
                 <% if (flash && flash.error) { %>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -33,32 +33,26 @@
                         <%= flash.success %>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    <a href="/account/login" class="btn btn-primary w-100 mb-3">Sign In</a>
                 <% } %>
 
-                <% if (token) { %>
-                    <form method="POST" action="/account/reset-password">
-                        <input type="hidden" name="token" value="<%= token %>">
+                <form method="POST" action="/account/login">
+                    <input type="hidden" name="returnTo" value="<%= returnTo %>">
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="password" name="password"
-                                   minlength="8" required autofocus>
-                            <div class="form-text">Must be at least 8 characters.</div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required autofocus>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
-                                   minlength="8" required>
-                        </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">Reset Password</button>
-                    </form>
-                <% } %>
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Sign In</button>
+                </form>
 
                 <div class="text-center">
-                    <a href="/account/forgot-password" class="text-muted small">Request a new reset link</a>
+                    <a href="/account/forgot-password" class="text-muted small">Forgot password?</a>
                 </div>
             </div>
         </div>

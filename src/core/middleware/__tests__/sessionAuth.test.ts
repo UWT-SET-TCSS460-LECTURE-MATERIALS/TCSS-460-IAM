@@ -61,14 +61,14 @@ describe('requireSession', () => {
         expect(next).toHaveBeenCalled();
     });
 
-    it('should redirect to forgot-password when no session cookie on account path', () => {
+    it('should redirect to account login when no session cookie on account path', () => {
         const req = createMockRequest(undefined, true, '/account/profile');
         const res = createMockResponse();
 
         requireSession(req, res, next);
 
         expect(res.redirect).toHaveBeenCalledWith(
-            '/account/forgot-password?error=session_expired'
+            '/account/login?returnTo=%2Faccount%2Fprofile'
         );
         expect(next).not.toHaveBeenCalled();
     });
@@ -105,7 +105,7 @@ describe('requireSession', () => {
         requireSession(req, res, next);
 
         expect(res.redirect).toHaveBeenCalledWith(
-            '/account/forgot-password?error=session_expired'
+            '/account/login?returnTo=%2Faccount%2Fchange-password'
         );
         expect(next).not.toHaveBeenCalled();
     });

@@ -59,5 +59,9 @@ adminUiRoutes.post(
     '/tenants/:id/members/:accountId/remove',
     AdminUiController.removeMember
 );
+adminUiRoutes.post(
+    '/tenants/:id/members/:accountId/reset-password',
+    AdminUiController.resetMemberPassword
+);
 
 export { adminUiRoutes };

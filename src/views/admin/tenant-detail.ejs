@@ -306,11 +306,40 @@
                                             </form>
                                         </td>
                                         <td>
-                                            <form method="POST"
+                                            <button type="button" class="btn btn-sm btn-outline-warning me-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#resetPwModal-<%= member.accountId %>"
+                                                    title="Reset password">PW</button>
+                                            <form method="POST" class="d-inline"
                                                   action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/remove"
                                                   onsubmit="return confirm('Remove <%= member.firstName %> <%= member.lastName %> from this tenant?')">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                             </form>
+
+                                            <!-- Reset Password Modal -->
+                                            <div class="modal fade" id="resetPwModal-<%= member.accountId %>" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-sm">
+                                                    <div class="modal-content">
+                                                        <form method="POST" action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/reset-password">
+                                                            <div class="modal-header">
+                                                                <h6 class="modal-title">Reset Password</h6>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p class="small text-muted mb-2"><%= member.firstName %> <%= member.lastName %></p>
+                                                                <label for="pw-<%= member.accountId %>" class="form-label">New Password</label>
+                                                                <input type="password" class="form-control" id="pw-<%= member.accountId %>"
+                                                                       name="password" minlength="8" required>
+                                                                <div class="form-text">Min 8 characters.</div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-sm btn-warning">Reset</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 <% }); %>

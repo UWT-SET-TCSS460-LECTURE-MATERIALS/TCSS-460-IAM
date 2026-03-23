@@ -2,6 +2,9 @@
 import { Router } from 'express';
 import { requireSession } from '../../core/middleware/sessionAuth';
 import {
+    getAccountLogin,
+    postAccountLogin,
+    postAccountLogout,
     getForgotPassword,
     postForgotPassword,
     getResetPassword,
@@ -16,6 +19,9 @@ import {
 const accountRoutes = Router();
 
 // Public routes (no session required)
+accountRoutes.get('/login', getAccountLogin);
+accountRoutes.post('/login', postAccountLogin);
+accountRoutes.post('/logout', postAccountLogout);
 accountRoutes.get('/forgot-password', getForgotPassword);
 accountRoutes.post('/forgot-password', postForgotPassword);
 accountRoutes.get('/reset-password', getResetPassword);

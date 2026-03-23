@@ -165,10 +165,19 @@ async function main() {
     console.log(`  Created tenant: ${aiTutorTenant.tenantId}`);
 
     // Create shared dev OAuth client for TCSS 460
-    const devClientSecret = crypto.randomBytes(32).toString('hex');
+    // Deterministic dev secret — matches values in integration guides and .env.example files.
+    // DO NOT use in production. Rotate via admin UI before deploying.
+    const devClientSecret =
+        'dev-secret-tcss460-do-not-use-in-prod-1234567890abcdef1234567890abcdef';
     await prisma.oAuthClient.upsert({
         where: { clientId: 'tcss460-dev-shared' },
-        update: {},
+        update: {
+            clientSecret: devClientSecret,
+            redirectUris: [
+                'http://localhost:3000/api/auth/callback/tcss460',
+                'http://localhost:3000/auth/callback',
+            ],
+        },
         create: {
             clientId: 'tcss460-dev-shared',
             clientSecret: devClientSecret,
@@ -185,16 +194,26 @@ async function main() {
     );
 
     // Create AI Tutor OAuth client
-    const aiTutorClientSecret = crypto.randomBytes(32).toString('hex');
+    const aiTutorClientSecret =
+        'dev-secret-ai-tutor-do-not-use-in-prod-1234567890abcdef1234567890abcdef';
     await prisma.oAuthClient.upsert({
         where: { clientId: 'ai-tutor-app' },
-        update: {},
+        update: {
+            clientSecret: aiTutorClientSecret,
+            redirectUris: [
+                'http://localhost:3001/api/auth/callback/tcss460',
+                'http://localhost:3001/api/auth/callback/auth2',
+            ],
+        },
         create: {
             clientId: 'ai-tutor-app',
             clientSecret: aiTutorClientSecret,
             clientName: 'AI Tutor Application',
             tenantId: 'ai-tutor',
-            redirectUris: ['http://localhost:3001/api/auth/callback/tcss460'],
+            redirectUris: [
+                'http://localhost:3001/api/auth/callback/tcss460',
+                'http://localhost:3001/api/auth/callback/auth2',
+            ],
         },
     });
     console.log(

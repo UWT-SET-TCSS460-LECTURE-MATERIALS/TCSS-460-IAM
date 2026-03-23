@@ -4,11 +4,101 @@ import { JwtRequest } from '@models';
 import { authService } from '../services/auth.service';
 import { accountService } from '../services/account.service';
 import {
+    generateAccessToken,
     generatePasswordResetToken,
     verifyToken,
 } from '../core/utilities/tokenUtils';
 import { sendEmail } from '../core/utilities/emailService';
 import { getEnvVar } from '../core/utilities/envConfig';
+
+/**
+ * GET /account/login
+ * Render login form for account management pages.
+ */
+export const getAccountLogin = (req: Request, res: Response): void => {
+    const returnTo =
+        (req.query.returnTo as string) || '/account/profile';
+    const flash: Record<string, string> = {};
+
+    if (req.query.deleted === 'true') {
+        flash.success = 'Your account has been deleted.';
+    }
+    if (req.query.error === 'session_expired') {
+        flash.error = 'Your session has expired. Please sign in again.';
+    }
+
+    res.render('account/login', {
+        title: 'Sign In - Auth\u00B2',
+        returnTo,
+        flash,
+    });
+};
+
+/**
+ * POST /account/login
+ * Authenticate, set session cookie, redirect to returnTo.
+ */
+export const postAccountLogin = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { email, password } = req.body;
+    const returnTo = (req.body.returnTo as string) || '/account/profile';
+
+    if (!email || !password) {
+        res.render('account/login', {
+            title: 'Sign In - Auth\u00B2',
+            returnTo,
+            flash: { error: 'Please enter your email and password.' },
+        });
+        return;
+    }
+
+    try {
+        const result = await authService.login(email, password);
+        if (!result.success) {
+            res.render('account/login', {
+                title: 'Sign In - Auth\u00B2',
+                returnTo,
+                flash: {
+                    error: result.error?.message || 'Invalid credentials.',
+                },
+            });
+            return;
+        }
+
+        const token = generateAccessToken({
+            id: result.data!.user.id,
+            email: result.data!.user.email,
+            role: (result.data!.user as any).roleLevel ?? 1,
+        });
+
+        res.cookie('session', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 14 * 24 * 60 * 60 * 1000,
+        });
+
+        res.redirect(returnTo);
+    } catch (err) {
+        console.error('Account login error:', err);
+        res.render('account/login', {
+            title: 'Sign In - Auth\u00B2',
+            returnTo,
+            flash: { error: 'An unexpected error occurred. Please try again.' },
+        });
+    }
+};
+
+/**
+ * POST /account/logout
+ * Clear session cookie and redirect to login.
+ */
+export const postAccountLogout = (req: Request, res: Response): void => {
+    res.clearCookie('session');
+    res.redirect('/account/login');
+};
 
 /**
  * GET /account/forgot-password
@@ -18,6 +108,7 @@ export const getForgotPassword = (req: Request, res: Response): void => {
     res.render('account/forgot-password', {
         title: 'Forgot Password - Auth\u00B2',
         flash: {},
+        devResetUrl: undefined,
     });
 };
 
@@ -36,12 +127,14 @@ export const postForgotPassword = async (
         res.render('account/forgot-password', {
             title: 'Forgot Password - Auth\u00B2',
             flash: { error: 'Please enter your email address.' },
+            devResetUrl: undefined,
         });
         return;
     }
 
     try {
         const account = await authService.findAccountForReset(email);
+        let resetUrl: string | undefined;
 
         if (account) {
             const resetToken = generatePasswordResetToken(
@@ -52,7 +145,7 @@ export const postForgotPassword = async (
                 'BASE_URL',
                 `http://localhost:${getEnvVar('PORT', '5500')}`
             );
-            const resetUrl = `${baseUrl}/account/reset-password?token=${resetToken}`;
+            resetUrl = `${baseUrl}/account/reset-password?token=${resetToken}`;
 
             try {
                 await sendEmail({
@@ -65,6 +158,10 @@ export const postForgotPassword = async (
             }
         }
 
+        // In dev mode (emails disabled), show the reset URL directly
+        const emailsEnabled = getEnvVar('SEND_EMAILS') === 'true';
+        const devResetUrl = !emailsEnabled ? resetUrl : undefined;
+
         // Always show success to prevent email enumeration
         res.render('account/forgot-password', {
             title: 'Forgot Password - Auth\u00B2',
@@ -72,12 +169,14 @@ export const postForgotPassword = async (
                 success:
                     'If an account with that email exists, a password reset link has been sent.',
             },
+            devResetUrl,
         });
     } catch (err) {
         console.error('Forgot password error:', err);
         res.render('account/forgot-password', {
             title: 'Forgot Password - Auth\u00B2',
             flash: { error: 'An unexpected error occurred. Please try again.' },
+            devResetUrl: undefined,
         });
     }
 };
@@ -374,7 +473,7 @@ export const postDelete = async (
         }
 
         res.clearCookie('session');
-        res.redirect('/account/forgot-password?deleted=true');
+        res.redirect('/account/login?deleted=true');
     } catch (err) {
         console.error('Delete account error:', err);
         res.render('account/delete', {

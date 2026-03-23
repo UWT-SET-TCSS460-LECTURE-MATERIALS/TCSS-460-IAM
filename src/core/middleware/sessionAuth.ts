@@ -38,7 +38,7 @@ export const requireSession = (
                 response.redirect('/admin/ui/login');
             } else {
                 response.redirect(
-                    '/account/forgot-password?error=session_expired'
+                    `/account/login?returnTo=${encodeURIComponent(request.originalUrl)}`
                 );
             }
         } else {
