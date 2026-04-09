@@ -13,6 +13,13 @@ let emailTransporter: nodemailer.Transporter | null = null;
  * Call this once at application startup
  */
 export const initializeEmailService = (): void => {
+    const sendEmails = getEnvVar('SEND_EMAILS', 'false') === 'true';
+
+    if (!sendEmails) {
+        console.log('ℹ️ Email service disabled (SEND_EMAILS=false)');
+        return;
+    }
+
     try {
         emailTransporter = nodemailer.createTransport({
             service: getEnvVar('EMAIL_SERVICE', 'gmail'),

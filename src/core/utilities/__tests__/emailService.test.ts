@@ -42,7 +42,7 @@ describe('emailService', () => {
                     EMAIL_USER: 'test@example.com',
                     EMAIL_PASSWORD: 'password123',
                     EMAIL_FROM: 'Auth² Service <noreply@auth2.com>',
-                    SEND_EMAILS: 'false',
+                    SEND_EMAILS: 'true',
                     SEND_SMS_EMAILS: 'false',
                     DEFAULT_SMS_CARRIER: 'att',
                 };
@@ -102,6 +102,7 @@ describe('emailService', () => {
         it('should use custom email service from environment', () => {
             mockEnvConfig.getEnvVar.mockImplementation(
                 (key: string, defaultValue?: string) => {
+                    if (key === 'SEND_EMAILS') return 'true';
                     if (key === 'EMAIL_SERVICE') return 'outlook';
                     if (key === 'EMAIL_USER') return 'test@outlook.com';
                     if (key === 'EMAIL_PASSWORD') return 'password456';
