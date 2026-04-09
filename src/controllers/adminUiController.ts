@@ -109,6 +109,45 @@ export class AdminUiController {
     }
 
     /**
+     * POST /admin/ui/users — create a global account from the dashboard
+     */
+    static async createUser(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { firstname, lastname, email, password, username, phone, role, status } = request.body;
+
+        try {
+            const result = await authService.register({
+                firstname,
+                lastname,
+                email,
+                password,
+                username,
+                phone,
+                role: parseInt(role) || 1,
+                status: status || 'active',
+            });
+
+            if (!result.success) {
+                response.redirect(
+                    `/admin/ui/dashboard?error=${encodeURIComponent(result.error!.message)}`
+                );
+                return;
+            }
+
+            response.redirect(
+                `/admin/ui/dashboard?success=${encodeURIComponent(`User ${email} created successfully`)}`
+            );
+        } catch (error) {
+            console.error('Admin UI create user error:', error);
+            response.redirect(
+                `/admin/ui/dashboard?error=${encodeURIComponent('Failed to create user')}`
+            );
+        }
+    }
+
+    /**
      * Tenant detail — shows clients and members
      * GET /admin/ui/tenants/:id
      */

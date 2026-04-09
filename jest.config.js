@@ -20,6 +20,7 @@ module.exports = {
     moduleNameMapper: {
         '^@core/(.*)$': '<rootDir>/src/core/$1',
         '^@routes/(.*)$': '<rootDir>/src/routes/$1',
+        '^@controllers$': '<rootDir>/src/controllers/index',
         '^@utilities$': '<rootDir>/src/core/utilities/index',
         '^@middleware$': '<rootDir>/src/core/middleware/index',
         '^@models$': '<rootDir>/src/core/models/index',

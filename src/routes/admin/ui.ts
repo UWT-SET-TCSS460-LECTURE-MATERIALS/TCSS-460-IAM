@@ -22,6 +22,9 @@ adminUiRoutes.get(
     AdminUiController.clientDetail
 );
 
+// POST actions — users
+adminUiRoutes.post('/users', AdminUiController.createUser);
+
 // POST actions — tenants
 adminUiRoutes.post('/tenants', AdminUiController.createTenant);
 adminUiRoutes.post('/tenants/:id/update', AdminUiController.updateTenant);

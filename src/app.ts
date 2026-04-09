@@ -31,11 +31,10 @@ export const createApp = (): Express => {
     app.set('views', path.join(__dirname, 'views'));
 
     // Middleware
-    app.use(cors());
-    // app.use(cors({
-    //     origin: ['http://localhost:3000', 'http://localhost:8000'],
-    //     credentials: true
-    // }));
+    app.use(cors({
+        origin: true,
+        credentials: true
+    }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());

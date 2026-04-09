@@ -3,24 +3,21 @@ services:
       name: auth-squared
       runtime: node
       plan: free
-      buildCommand: npm ci --include=dev && npx prisma generate && npx prisma migrate deploy && npm run build
+      buildCommand: npm ci --include=dev && npm run build && npx prisma migrate deploy
       startCommand: npm run start
       healthCheckPath: /health
       envVars:
+          # Set DATABASE_URL manually in Render dashboard to reuse existing DB
+          # (internal URL from your existing Render PostgreSQL instance)
           - key: DATABASE_URL
-            fromDatabase:
-                name: auth-squared-db
-                property: connectionString
+            sync: false
           - key: JWT_SECRET
-            generateValue: true
+            sync: false
           - key: NODE_ENV
             value: production
           - key: PORT
             value: '8000'
           - key: SEND_EMAILS
             value: 'false'
-
-databases:
-    - name: auth-squared-db
-      plan: free
-      databaseName: auth_squared
+          - key: APP_BASE_URL
+            sync: false

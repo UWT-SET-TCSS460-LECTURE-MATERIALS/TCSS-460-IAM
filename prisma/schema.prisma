@@ -35,11 +35,11 @@ model Account {
   authorizationCodes OAuthAuthorizationCode[]
   refreshTokens      OAuthRefreshToken[]
 
-  @@index([email], map: "idx_account_email")
-  @@index([phone], map: "idx_account_phone")
-  @@index([username], map: "idx_account_username")
-  @@index([accountStatus], map: "idx_account_status")
-  @@map("account")
+  @@index([email], map: "idx_a2_account_email")
+  @@index([phone], map: "idx_a2_account_phone")
+  @@index([username], map: "idx_a2_account_username")
+  @@index([accountStatus], map: "idx_a2_account_status")
+  @@map("a2_account")
 }
 
 model AccountCredential {
@@ -50,7 +50,7 @@ model AccountCredential {
 
   account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
 
-  @@map("account_credential")
+  @@map("a2_account_credential")
 }
 
 model EmailVerification {
@@ -64,10 +64,10 @@ model EmailVerification {
 
   account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
 
-  @@index([accountId], map: "idx_email_verification_account")
-  @@index([verificationToken], map: "idx_email_verification_token")
-  @@index([tokenExpires], map: "idx_email_verification_expires")
-  @@map("email_verification")
+  @@index([accountId], map: "idx_a2_email_verification_account")
+  @@index([verificationToken], map: "idx_a2_email_verification_token")
+  @@index([tokenExpires], map: "idx_a2_email_verification_expires")
+  @@map("a2_email_verification")
 }
 
 model PhoneVerification {
@@ -82,10 +82,10 @@ model PhoneVerification {
 
   account Account @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
 
-  @@index([accountId], map: "idx_phone_verification_account")
-  @@index([verificationCode], map: "idx_phone_verification_code")
-  @@index([codeExpires], map: "idx_phone_verification_expires")
-  @@map("phone_verification")
+  @@index([accountId], map: "idx_a2_phone_verification_account")
+  @@index([verificationCode], map: "idx_a2_phone_verification_code")
+  @@index([codeExpires], map: "idx_a2_phone_verification_expires")
+  @@map("a2_phone_verification")
 }
 
 // ============================================================
@@ -106,7 +106,7 @@ model Tenant {
   memberships TenantMembership[]
   clients     OAuthClient[]
 
-  @@map("tenant")
+  @@map("a2_tenant")
 }
 
 model TenantMembership {
@@ -120,7 +120,7 @@ model TenantMembership {
   tenant  Tenant  @relation(fields: [tenantId], references: [tenantId])
 
   @@unique([accountId, tenantId])
-  @@map("tenant_membership")
+  @@map("a2_tenant_membership")
 }
 
 model OAuthClient {
@@ -135,7 +135,7 @@ model OAuthClient {
   authorizationCodes OAuthAuthorizationCode[]
   refreshTokens      OAuthRefreshToken[]
 
-  @@map("oauth_client")
+  @@map("a2_oauth_client")
 }
 
 model OAuthAuthorizationCode {
@@ -152,7 +152,7 @@ model OAuthAuthorizationCode {
   client  OAuthClient @relation(fields: [clientId], references: [clientId])
   account Account     @relation(fields: [accountId], references: [accountId])
 
-  @@map("oauth_authorization_code")
+  @@map("a2_oauth_authorization_code")
 }
 
 model OAuthRefreshToken {
@@ -166,5 +166,5 @@ model OAuthRefreshToken {
   account Account     @relation(fields: [accountId], references: [accountId])
   client  OAuthClient @relation(fields: [clientId], references: [clientId])
 
-  @@map("oauth_refresh_token")
+  @@map("a2_oauth_refresh_token")
 }

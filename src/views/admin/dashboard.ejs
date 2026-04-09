@@ -46,9 +46,77 @@
                 <h2 class="mb-1">Tenant Management</h2>
                 <p class="text-muted mb-0">Manage tenants, OAuth clients, and memberships</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#createTenantForm">
-                + Create Tenant
-            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#createUserForm">
+                    + Create User
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#createTenantForm">
+                    + Create Tenant
+                </button>
+            </div>
+        </div>
+
+        <!-- Create User Form (collapsed) -->
+        <div class="collapse mb-4" id="createUserForm">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Create New User (Global Account)</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/ui/users">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="userFirstname" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="userFirstname" name="firstname" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userLastname" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="userLastname" name="lastname" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="userEmail" name="email" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="userUsername" name="username" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userPhone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="userPhone" name="phone"
+                                       placeholder="2065551234" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="userPassword" name="password"
+                                       minlength="8" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userRole" class="form-label">Role</label>
+                                <select class="form-select" id="userRole" name="role">
+                                    <option value="1" selected>User (1)</option>
+                                    <option value="2">Moderator (2)</option>
+                                    <option value="3">Admin (3)</option>
+                                    <option value="4">SuperAdmin (4)</option>
+                                    <option value="5">Owner (5)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="userStatus" class="form-label">Status</label>
+                                <select class="form-select" id="userStatus" name="status">
+                                    <option value="active" selected>Active</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Create User</button>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="collapse"
+                                    data-bs-target="#createUserForm">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Create Tenant Form (collapsed) -->
