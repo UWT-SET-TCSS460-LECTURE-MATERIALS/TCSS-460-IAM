@@ -64,11 +64,11 @@ describe('envConfig', () => {
                 .mockImplementation();
 
             expect(() => validateEnv()).toThrow(
-                'Missing required environment variables: JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD'
+                'Missing required environment variables: JWT_SECRET, DATABASE_URL'
             );
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 '❌ Missing required environment variables:',
-                'JWT_SECRET, DATABASE_URL, EMAIL_USER, EMAIL_PASSWORD'
+                'JWT_SECRET, DATABASE_URL'
             );
 
             consoleErrorSpy.mockRestore();
@@ -76,19 +76,34 @@ describe('envConfig', () => {
 
         it('should throw error when some required variables are missing', () => {
             process.env.JWT_SECRET = 'test-secret';
-            process.env.EMAIL_USER = 'test@example.com';
-            // Missing DATABASE_URL and EMAIL_PASSWORD
+            // Missing DATABASE_URL
 
             const consoleErrorSpy = jest
                 .spyOn(console, 'error')
                 .mockImplementation();
 
             expect(() => validateEnv()).toThrow(
-                'Missing required environment variables: DATABASE_URL, EMAIL_PASSWORD'
+                'Missing required environment variables: DATABASE_URL'
             );
             expect(consoleErrorSpy).toHaveBeenCalledWith(
                 '❌ Missing required environment variables:',
-                'DATABASE_URL, EMAIL_PASSWORD'
+                'DATABASE_URL'
+            );
+
+            consoleErrorSpy.mockRestore();
+        });
+
+        it('should require EMAIL_USER and EMAIL_PASSWORD when SEND_EMAILS is true', () => {
+            process.env.JWT_SECRET = 'test-secret';
+            process.env.DATABASE_URL = 'postgresql://test';
+            process.env.SEND_EMAILS = 'true';
+
+            const consoleErrorSpy = jest
+                .spyOn(console, 'error')
+                .mockImplementation();
+
+            expect(() => validateEnv()).toThrow(
+                'Missing required environment variables: EMAIL_USER, EMAIL_PASSWORD'
             );
 
             consoleErrorSpy.mockRestore();
@@ -393,17 +408,15 @@ describe('envConfig', () => {
     describe('Error handling', () => {
         it('should provide detailed error messages for missing variables', () => {
             process.env.JWT_SECRET = 'present';
-            // Missing other required variables
+            // Missing DATABASE_URL
 
             expect(() => validateEnv()).toThrow(
-                /Missing required environment variables.*DATABASE_URL.*EMAIL_USER.*EMAIL_PASSWORD/
+                /Missing required environment variables.*DATABASE_URL/
             );
         });
 
         it('should handle partial validation failures gracefully', () => {
-            process.env.JWT_SECRET = 'test-secret';
-            process.env.DATABASE_URL = 'postgresql://test';
-            // Missing EMAIL_USER and EMAIL_PASSWORD
+            // Missing both required variables
 
             const consoleErrorSpy = jest
                 .spyOn(console, 'error')

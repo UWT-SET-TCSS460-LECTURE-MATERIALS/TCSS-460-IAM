@@ -3,12 +3,9 @@
 /**
  * Required environment variables for the application
  */
-const requiredEnvVars = [
-    'JWT_SECRET',
-    'DATABASE_URL',
-    'EMAIL_USER',
-    'EMAIL_PASSWORD',
-];
+const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
+
+const emailRequiredEnvVars = ['EMAIL_USER', 'EMAIL_PASSWORD'];
 
 /**
  * Optional environment variables with defaults
@@ -30,7 +27,12 @@ const optionalEnvVars = {
  * Call this at application startup
  */
 export const validateEnv = (): void => {
-    const missing = requiredEnvVars.filter((key) => !process.env[key]);
+    const allRequired =
+        process.env.SEND_EMAILS === 'true'
+            ? [...requiredEnvVars, ...emailRequiredEnvVars]
+            : requiredEnvVars;
+
+    const missing = allRequired.filter((key) => !process.env[key]);
 
     if (missing.length > 0) {
         console.error(
