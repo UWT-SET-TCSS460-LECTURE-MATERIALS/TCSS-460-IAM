@@ -5,21 +5,17 @@
     <!-- Inner shield -->
     <path d="M 200 80 L 290 120 L 290 210 Q 290 270, 200 310 Q 110 270, 110 210 L 110 120 Z" fill="white" opacity="0.95"/>
 
-    <!-- Lock icon (moved up 1px more from previous) -->
-    <rect x="170" y="177" width="60" height="50" rx="8" fill="#85754d"/>
-    <path d="M 185 177 Q 185 157, 200 157 Q 215 157, 215 177" stroke="#85754d" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <!-- Lock icon -->
+    <rect x="170" y="152" width="60" height="50" rx="8" fill="#85754d"/>
+    <path d="M 185 152 Q 185 132, 200 132 Q 215 132, 215 152" stroke="#85754d" stroke-width="10" fill="none" stroke-linecap="round"/>
 
-    <!-- Keyhole (moved up 1px more) -->
-    <circle cx="200" cy="197" r="6" fill="#4b2e83"/>
-    <rect x="197" y="197" width="6" height="15" fill="#4b2e83"/>
+    <!-- Keyhole -->
+    <circle cx="200" cy="172" r="6" fill="#4b2e83"/>
+    <rect x="197" y="172" width="6" height="15" fill="#4b2e83"/>
 
-    <!-- TCSS 460 (moved up 3px more from previous) -->
-    <rect x="150" y="115" width="100" height="30" rx="15" fill="#4b2e83"/>
-    <text x="200" y="135" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="white">TCSS 460</text>
+    <!-- AUTH with aligned ² -->
+    <text x="200" y="243" font-family="Arial Black" font-size="42" text-anchor="middle" fill="#4b2e83">AUTH</text>
 
-    <!-- AUTH with aligned ² (keeping same as before) -->
-    <text x="200" y="268" font-family="Arial Black" font-size="42" text-anchor="middle" fill="#4b2e83">AUTH</text>
-
-    <!-- Bold ² aligned with top of H (moved right 3px, down 10px) -->
-    <text x="263" y="248" font-family="Arial Black" font-size="24" font-weight="bold" fill="#85754d">2</text>
+    <!-- Bold ² -->
+    <text x="263" y="223" font-family="Arial Black" font-size="24" font-weight="bold" fill="#85754d">2</text>
 </svg>

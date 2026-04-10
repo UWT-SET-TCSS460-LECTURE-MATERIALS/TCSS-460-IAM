@@ -58,6 +58,29 @@ export const createApp = (): Express => {
         );
     }
 
+    // Dev-only preview routes for hosted pages (no DB required)
+    if (process.env.NODE_ENV !== 'production') {
+        const previewData = {
+            tenantName: 'Sample Tenant App',
+            clientId: 'preview',
+            redirectUri: 'http://localhost:3000',
+            state: 'preview',
+            codeChallenge: '',
+            codeChallengeMethod: '',
+            error: null,
+        };
+
+        app.get('/dev/preview/login', (_req, res) => {
+            res.render('oauth/login', { ...previewData });
+        });
+        app.get('/dev/preview/register', (_req, res) => {
+            res.render('oauth/register', { ...previewData });
+        });
+        app.get('/dev/preview/error', (_req, res) => {
+            res.render('oauth/error', { error: 'This is a sample error message for preview purposes.' });
+        });
+    }
+
     // Routes (mounted after public endpoints)
     app.use(routes);
 
