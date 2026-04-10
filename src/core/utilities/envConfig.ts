@@ -11,13 +11,13 @@ const emailRequiredEnvVars = ['EMAIL_USER', 'EMAIL_PASSWORD'];
  * Optional environment variables with defaults
  */
 const optionalEnvVars = {
-    PORT: '8000',
+    PORT: '13000',
     NODE_ENV: 'development',
     EMAIL_SERVICE: 'gmail',
     EMAIL_FROM: 'Auth² Service <noreply@auth2.com>',
     SEND_EMAILS: 'false',
     SEND_SMS_EMAILS: 'false',
-    APP_BASE_URL: 'http://localhost:8000',
+    APP_BASE_URL: 'http://localhost:13000',
     DEFAULT_SMS_CARRIER: 'att',
     JWT_EXPIRY: '14d',
 };
