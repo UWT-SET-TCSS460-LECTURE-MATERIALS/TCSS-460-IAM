@@ -1,16 +1,12 @@
-Show current active work only. No backlog, no changelog, no commentary.
+Show the current active work only. Keep it short — this is a quick status check.
 
-## Steps
-
-1. Read the memory files in the Claude memory directory for any "Active Work" entries
-2. Check `git branch` for feature branches (exclude `main`)
-3. Display as:
+1. Read the `active_work.md` file from the Claude memory directory. This is the single source of truth for in-flight work.
+2. Check `git branch` for feature branches.
+3. Display as a concise list:
 
 ### Active Work
-| Item | Status |
-|------|--------|
+| Branch | Status |
+|--------|--------|
 | ... | ... |
 
-If there are feature branches, show them. If there are noted blockers or next steps, show those.
-
-If there is no active work, say so: "No active work items. Use `/todo/add` to add one."
+Include any noted blockers or next steps from the memory file. No backlog, no changelog — just what's in flight right now.

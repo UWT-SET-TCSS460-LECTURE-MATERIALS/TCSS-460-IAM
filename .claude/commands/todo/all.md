@@ -1,8 +1,8 @@
 Display the full project status from three sources. Keep it concise. No commentary or suggestions.
 
-## 1. Active Work (from memory)
+## 1. Active Work (from `active_work.md` in the Claude memory directory)
 
-Read the memory files in the Claude memory directory for any "Active Work" entries or active work tracking. Also check `git branch` for feature branches.
+Read the `active_work.md` memory file. Also check `git branch` for feature branches.
 
 Display as:
 
@@ -11,15 +11,15 @@ Display as:
 |--------|--------|
 | ... | ... |
 
-Include any noted blockers or next steps from memory.
+Include any noted blockers or next steps from the memory file.
 
 ## 2. Backlog (from `planning/BACKLOG.md`)
 
 Show these sections, collapsed into brief summaries:
-- **P1** — Pre-launch (student-facing setup)
-- **P2** — Hardening (security, reliability)
-- **P3** — Features (new functionality)
-- **P4** — Future (long-term)
+- **P1 Pre-Launch** — critical for go-live
+- **P2 Hardening** — security & reliability
+- **P3 Features** — nice-to-have
+- **P4 Future** — long-term
 - **Known Issues**
 
 ## 3. Changelog (from `CHANGELOG.md`)

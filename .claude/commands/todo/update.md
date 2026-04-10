@@ -4,7 +4,7 @@ End-of-session update. Review the current conversation to identify what was acco
 
 - **Backlog:** `planning/BACKLOG.md`
 - **Changelog:** `CHANGELOG.md`
-- **Active work:** Claude memory (MEMORY.md "Active Work" section)
+- **Active work:** `active_work.md` in the Claude memory directory (has frontmatter — preserve it)
 
 ## Steps
 
@@ -27,20 +27,41 @@ Scan the conversation for:
 
 Only update if a version-worthy change was made (feature, fix, breaking change). Add entries under the appropriate version section following Keep a Changelog format. If no version section exists for current work, create an `[Unreleased]` section.
 
-### 4. Update memory — Active Work
+### 4. Update active work memory file
 
-Update the "Active Work" section in MEMORY.md to reflect current state:
+Read the current `active_work.md` from the Claude memory directory. Then **write the entire file back** using the Write tool with updated content. The file MUST have this structure:
+
+```markdown
+---
+name: Active work tracker
+description: Current in-flight branches, blockers, and next steps — updated by /todo:update at end of session
+type: project
+---
+
+## Active Work
+
+- **item** — description
+```
+
+Update to reflect current state:
 - What branches are in progress and their status
 - What's blocked and on what
 - What's ready to deploy/merge
 - Remove items that are fully shipped
+- Convert relative dates to absolute dates
 
-### 5. Show summary
+### 5. Update MEMORY.md index (if needed)
+
+If the one-line summary for `active_work.md` in MEMORY.md no longer fits, update it. Usually this is not needed.
+
+### 6. Show summary
 
 Display what was updated:
 
 ```
+═══════════════════════════════════════════════════════
 SESSION UPDATE
+═══════════════════════════════════════════════════════
 
 Completed:
 - [list of items marked done]
@@ -53,6 +74,8 @@ Changelog:
 
 Active work:
 - [current state of in-flight branches]
+
+───────────────────────────────────────────────────────
 ```
 
 ## Rules
@@ -62,3 +85,4 @@ Active work:
 - Do NOT remove TODO items — mark them `[x]` so history is preserved
 - Keep changelog entries concise — one line per item
 - If unsure whether something was completed, ask the user before updating
+- Always use the Write tool to save `active_work.md` — do not just edit MEMORY.md
