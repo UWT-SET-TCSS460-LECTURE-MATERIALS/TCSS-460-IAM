@@ -427,33 +427,11 @@ This service stores user identities (email, name) and links them to activity in 
 
 ---
 
-## Open Questions
+## Backlog & TODOs
 
-### OAuth2
-- [ ] Library choice: `@node-oauth/oauth2-server` vs `oauth2orize` vs hand-roll (given the codebase already has JWT infrastructure, hand-rolling the 3 endpoints may be simpler than integrating a library)
-- [ ] Should `/oauth/userinfo` return `sub` (string) or `id` (number)? Current JWT uses `id` (number). OAuth2/OIDC convention is `sub` (string). May need to map.
-- [ ] Refresh token support — current system issues 14-day access tokens with no refresh. OAuth2 conventionally uses short-lived access + long-lived refresh. Decision: keep 14-day for simplicity or add refresh?
-- [ ] PKCE (Proof Key for Code Exchange) — recommended for public clients. NextAuth supports it. Worth adding for teaching purposes?
-- [ ] Hosted login page styling — minimal functional HTML or something that looks decent? Use a templating engine (EJS/Handlebars) for tenant-aware branding?
+All open work items, feature requests, and open questions are tracked in `planning/BACKLOG.md` (prioritized P1–P4).
 
-### Account Management Pages
-- [ ] Session mechanism for hosted pages — JWT in HttpOnly cookie? Separate session store? Keep it simple.
-- [ ] Should profile page show tenant memberships (which systems the user belongs to)?
-- [ ] Delete account: soft delete (deactivate) or hard delete? Soft is safer and aligns with existing `Account_Status` field.
-- [ ] Should password reset emails be tenant-branded (e.g., "Reset your TCSS 460 password") or generic?
-
-### Multi-Tenancy
-- [ ] Auto-provisioning policy: when a user logs in via an OAuth client for a tenant they don't have a membership in, auto-create with default role? Or reject? Configurable per tenant?
-- [ ] Should `Tenant` have a config column (JSON) for per-tenant settings (default role, auto-provision, branding, allowed email domains)?
-- [ ] How to handle the existing `Account.Account_Role` column — keep as global default, or deprecate in favor of `Tenant_Membership.role`?
-- [ ] Tenant admin endpoints — should tenant owners manage their own clients/memberships via API, or is this all SQL-seeded by Charles?
-- [ ] Data retention: when a tenant is deactivated (e.g., quarter ends), purge tenant-specific data (memberships, OAuth clients, auth codes) while preserving global accounts?
-
-### Privacy
-- [ ] Exact disclaimer wording for the registration page
-- [ ] Verify with UW IT/legal that the approach (disclaimer + no `@uw.edu` requirement + opaque identity links) is sufficient
-- [ ] Data retention policy: how long to keep accounts, login logs, tenant membership data after a tenant is deactivated
-- [ ] Should there be a "delete my account" self-service option for GDPR-style compliance?
+Use `/todo/all` for a full dashboard, `/todo/backlog` to view the backlog, `/todo/add` to add items.
 
 ---
 

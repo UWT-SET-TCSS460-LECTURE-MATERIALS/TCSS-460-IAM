@@ -4,6 +4,41 @@ All notable changes to Auth² are documented in this file.
 
 ---
 
+## [2.2.0] — 2026-04-10
+
+### Deployment & Branding
+
+Production deployment to Render with shared database support, Auth²-branded OAuth pages, and client integration documentation.
+
+### Added
+
+- **Auth² branding on hosted OAuth pages** — logo + purple accent + "to continue to [tenant]" subtitle, following the Google/GitHub sign-in pattern
+- **Dev preview routes** — `/dev/preview/*` for viewing hosted pages without a DB or tenant (dev-only)
+- **Client integration guides** — `client-guides/oauth-login-setup.md` (NextAuth OAuth2 setup) and `client-guides/change-password-flow.md` (password management integration)
+- **Planning docs** — `planning/google-identity-provider.md` (future Google IdP federation) and `planning/change-password-ux-todos.md` (UX improvements for hosted pages)
+- **Render deployment** — `render.yaml` blueprint for shared Render PostgreSQL, manual env var configuration
+- **Prisma `a2_` table prefix** — all tables prefixed to avoid conflicts in shared Render DB
+- **Initial Prisma migration** — `0_init` with `a2_`-prefixed tables
+- **Admin UI create user form** — add users from the admin dashboard
+- **Integration test suite** — end-to-end tests for core flows
+- **Project backlog** — `planning/BACKLOG.md` with prioritized P1-P4 items, seeded from CLAUDE.md open questions and memory
+- **`/todo` slash commands** — `add`, `all`, `backlog`, `changelog`, `update` for session-based project tracking
+
+### Fixed
+
+- **Email service crash on deploy** — `initializeEmailService()` now skips init when `SEND_EMAILS=false`
+- **Env validation** — `EMAIL_USER`/`EMAIL_PASSWORD` only required when `SEND_EMAILS=true`
+- **Dev port conflicts** — app port 8000 → 13000, Postgres host port 5432 → 5555
+- **`.env.example` credentials** — fixed mismatched DB credentials to match docker-compose
+
+### Changed
+
+- **Build script** — added `tsc-alias` path resolution + copy EJS views to `dist/`
+- **CLAUDE.md** — replaced Open Questions section with pointer to `planning/BACKLOG.md`
+- **Cleaned up `.claude/commands/`** — removed 9 stale Java/Maven migration commands, kept `understand`, `plan`, `explain`
+
+---
+
 ## [2.1.0] — 2026-03-22
 
 ### UX & Integration Fixes
