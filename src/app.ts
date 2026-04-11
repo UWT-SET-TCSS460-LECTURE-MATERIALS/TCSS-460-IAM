@@ -41,7 +41,6 @@ export const createApp = (): Express => {
                 imgSrc: ["'self'", "data:"],
                 fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
                 connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
-                formAction: ["'self'"],
             }
         }
     }));
