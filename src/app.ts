@@ -2,6 +2,7 @@
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
@@ -30,7 +31,21 @@ export const createApp = (): Express => {
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, 'views'));
 
-    // Middleware
+    // Security headers
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+                imgSrc: ["'self'", "data:"],
+                fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+                connectSrc: ["'self'"],
+            }
+        }
+    }));
+
+    // CORS
     app.use(cors({
         origin: true,
         credentials: true
@@ -49,9 +64,21 @@ export const createApp = (): Express => {
     });
 
     // Load and setup Swagger documentation (must be before routes)
+    // Swagger UI requires inline scripts/styles, so relax CSP for this path
     try {
         const swaggerDocument = YAML.load('./docs/swagger.yaml');
-        app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+        app.use('/api-docs',
+            helmet.contentSecurityPolicy({
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+                    styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+                    imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
+                },
+            }),
+            swaggerUi.serve,
+            swaggerUi.setup(swaggerDocument)
+        );
     } catch (error) {
         console.warn(
             '⚠️ Swagger documentation not found at ./docs/swagger.yaml'
