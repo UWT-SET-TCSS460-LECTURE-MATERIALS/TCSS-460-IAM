@@ -36,11 +36,12 @@ export const createApp = (): Express => {
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
                 imgSrc: ["'self'", "data:"],
                 fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-                connectSrc: ["'self'"],
+                connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+                formAction: ["'self'"],
             }
         }
     }));
