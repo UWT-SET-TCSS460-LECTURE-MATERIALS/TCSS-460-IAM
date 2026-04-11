@@ -32,7 +32,10 @@ export const createApp = (): Express => {
     app.set('views', path.join(__dirname, 'views'));
 
     // Security headers
+    // crossOriginOpenerPolicy disabled: the OAuth popup flow requires
+    // window.opener to signal the parent app (different origin) to close
     app.use(helmet({
+        crossOriginOpenerPolicy: false,
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
