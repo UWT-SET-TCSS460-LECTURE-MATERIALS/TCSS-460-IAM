@@ -27,6 +27,11 @@ export const createApp = (): Express => {
 
     const app: Express = express();
 
+    // Render (and most PaaS providers) front the app with a reverse proxy.
+    // Trust the first hop so express-rate-limit keys on the real client IP
+    // from X-Forwarded-For instead of the proxy's address.
+    app.set('trust proxy', 1);
+
     // View engine setup (EJS for server-rendered OAuth/account pages)
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, 'views'));

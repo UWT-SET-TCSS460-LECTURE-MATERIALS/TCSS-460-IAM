@@ -5,6 +5,9 @@ import {
     validateRegister,
     validatePasswordReset,
     validatePasswordResetRequest,
+    authLimiter,
+    registrationLimiter,
+    passwordResetLimiter,
 } from '@middleware';
 
 const openRoutes: Router = express.Router();
@@ -15,13 +18,13 @@ const openRoutes: Router = express.Router();
  * Authenticate user and return JWT token
  * POST /auth/login
  */
-openRoutes.post('/auth/login', validateLogin, AuthController.login);
+openRoutes.post('/auth/login', authLimiter, validateLogin, AuthController.login);
 
 /**
  * Register a new user (always creates basic user with role 1)
  * POST /auth/register
  */
-openRoutes.post('/auth/register', validateRegister, AuthController.register);
+openRoutes.post('/auth/register', registrationLimiter, validateRegister, AuthController.register);
 
 // ===== PASSWORD RESET ROUTES =====
 
@@ -31,6 +34,7 @@ openRoutes.post('/auth/register', validateRegister, AuthController.register);
  */
 openRoutes.post(
     '/auth/password/reset-request',
+    passwordResetLimiter,
     validatePasswordResetRequest,
     AuthController.requestPasswordReset
 );
