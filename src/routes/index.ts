@@ -4,6 +4,7 @@ import { closedRoutes } from './closed';
 import { adminRoutes } from '@routes/admin';
 import { oauthRoutes } from './oauth';
 import { accountRoutes } from './account';
+import { deprecated } from '@middleware';
 
 const routes = Router();
 
@@ -11,7 +12,12 @@ const routes = Router();
 // closedRoutes is mounted at '' and applies checkToken middleware,
 // so everything below it would require auth.
 
-routes.use('/oauth', oauthRoutes);
+// Canonical versioned OAuth route
+routes.use('/v1/oauth', oauthRoutes);
+
+// Deprecated unversioned OAuth route — same handlers, deprecation headers signal "use /v1/"
+routes.use('/oauth', deprecated('/v1/oauth'), oauthRoutes);
+
 routes.use('/account', accountRoutes);
 routes.use('/admin', adminRoutes);
 routes.use('', openRoutes);
