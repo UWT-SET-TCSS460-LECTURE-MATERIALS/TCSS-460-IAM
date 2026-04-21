@@ -197,6 +197,7 @@
                                     <th>Status</th>
                                     <th>Members</th>
                                     <th>Clients</th>
+                                    <th>APIs</th>
                                     <th>Auto-Provision</th>
                                     <th></th>
                                 </tr>
@@ -224,6 +225,7 @@
                                         </td>
                                         <td><span class="badge bg-light text-dark border"><%= tenant.memberCount %></span></td>
                                         <td><span class="badge bg-light text-dark border"><%= tenant.clientCount %></span></td>
+                                        <td><span class="badge bg-light text-dark border"><%= tenant.apiResourceCount || 0 %></span></td>
                                         <td>
                                             <% if (tenant.autoProvision) { %>
                                                 <span class="badge bg-info text-dark">Yes</span>

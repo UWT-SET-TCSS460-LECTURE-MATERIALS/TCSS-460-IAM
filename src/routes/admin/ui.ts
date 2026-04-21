@@ -21,6 +21,10 @@ adminUiRoutes.get(
     '/tenants/:id/clients/:clientId',
     AdminUiController.clientDetail
 );
+adminUiRoutes.get(
+    '/tenants/:id/api-resources/:resourceId',
+    AdminUiController.resourceDetail
+);
 
 // POST actions — users
 adminUiRoutes.post('/users', AdminUiController.createUser);
@@ -65,6 +69,26 @@ adminUiRoutes.post(
 adminUiRoutes.post(
     '/tenants/:id/members/:accountId/reset-password',
     AdminUiController.resetMemberPassword
+);
+
+// POST actions — API resources (audiences)
+adminUiRoutes.post(
+    '/tenants/:id/api-resources',
+    AdminUiController.createApiResource
+);
+adminUiRoutes.post(
+    '/tenants/:id/api-resources/:resourceId/delete',
+    AdminUiController.deleteApiResource
+);
+
+// POST actions — client audience grants + test token
+adminUiRoutes.post(
+    '/tenants/:id/clients/:clientId/audiences',
+    AdminUiController.updateClientAudiences
+);
+adminUiRoutes.post(
+    '/tenants/:id/clients/:clientId/mint-token',
+    AdminUiController.mintTestToken
 );
 
 export { adminUiRoutes };

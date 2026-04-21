@@ -148,7 +148,7 @@ export class AdminUiController {
     }
 
     /**
-     * Tenant detail — shows clients and members
+     * Tenant detail — shows clients, members, and API resources
      * GET /admin/ui/tenants/:id
      */
     static async tenantDetail(
@@ -160,10 +160,12 @@ export class AdminUiController {
         const limit = 20;
 
         try {
-            const [tenantResult, membersResult] = await Promise.all([
-                tenantAdminService.getTenant(tenantId),
-                tenantAdminService.listMembers(tenantId, page, limit),
-            ]);
+            const [tenantResult, membersResult, resourcesResult] =
+                await Promise.all([
+                    tenantAdminService.getTenant(tenantId),
+                    tenantAdminService.listMembers(tenantId, page, limit),
+                    tenantAdminService.listApiResources(tenantId),
+                ]);
 
             if (!tenantResult.success) {
                 response.redirect('/admin/ui/dashboard?error=Tenant+not+found');
@@ -176,11 +178,15 @@ export class AdminUiController {
             const pagination = membersResult.success
                 ? membersResult.data!.pagination
                 : { page: 1, limit: 20, totalMembers: 0, totalPages: 1 };
+            const apiResources = resourcesResult.success
+                ? resourcesResult.data!.resources
+                : [];
 
             response.render('admin/tenant-detail', {
                 tenant: tenantResult.data!.tenant,
                 members,
                 pagination,
+                apiResources,
                 RoleName,
                 UserRole,
                 flash: {
@@ -201,6 +207,68 @@ export class AdminUiController {
     }
 
     /**
+     * Load data needed to render admin/client-detail. Used by both the GET
+     * detail page and the mint-token POST success path (which re-renders
+     * the page in place to avoid stuffing long JWTs into the URL).
+     *
+     * Returns either a populated `context` (render the page) or a `redirect`
+     * URL (bail with a flash message). Exactly one field will be set.
+     */
+    private static async loadClientContext(
+        tenantId: string,
+        clientId: string
+    ): Promise<{
+        redirect?: string;
+        context?: Record<string, unknown>;
+    }> {
+        const tenantResult = await tenantAdminService.getTenant(tenantId);
+        if (!tenantResult.success) {
+            return { redirect: '/admin/ui/dashboard?error=Tenant+not+found' };
+        }
+
+        const client = tenantResult.data!.tenant.clients.find(
+            (c: { clientId: string }) => c.clientId === clientId
+        );
+
+        if (!client) {
+            return {
+                redirect: `/admin/ui/tenants/${tenantId}?error=Client+not+found`,
+            };
+        }
+
+        // Load tenant-wide audiences, this client's current grants, and members
+        // (for the mint-test-token user dropdown).
+        const [resourcesResult, audiencesResult, membersResult] =
+            await Promise.all([
+                tenantAdminService.listApiResources(tenantId),
+                tenantAdminService.listClientAudiences(clientId),
+                tenantAdminService.listMembers(tenantId, 1, 1000),
+            ]);
+
+        const apiResources = resourcesResult.success
+            ? resourcesResult.data!.resources
+            : [];
+        const grantedAudienceIds: string[] = audiencesResult.success
+            ? audiencesResult.data!.audiences.map(
+                  (g: { apiResourceId: string }) => g.apiResourceId
+              )
+            : [];
+        const members = membersResult.success
+            ? membersResult.data!.members
+            : [];
+
+        return {
+            context: {
+                tenant: tenantResult.data!.tenant,
+                client,
+                apiResources,
+                grantedAudienceIds,
+                members,
+            },
+        };
+    }
+
+    /**
      * Client detail
      * GET /admin/ui/tenants/:id/clients/:clientId
      */
@@ -212,36 +280,81 @@ export class AdminUiController {
         const clientId = request.params.clientId;
 
         try {
-            const tenantResult = await tenantAdminService.getTenant(tenantId);
-            if (!tenantResult.success) {
-                response.redirect('/admin/ui/dashboard?error=Tenant+not+found');
-                return;
-            }
-
-            const client = tenantResult.data!.tenant.clients.find(
-                (c: { clientId: string }) => c.clientId === clientId
+            const loaded = await AdminUiController.loadClientContext(
+                tenantId,
+                clientId
             );
-
-            if (!client) {
-                response.redirect(
-                    `/admin/ui/tenants/${tenantId}?error=Client+not+found`
-                );
+            if (loaded.redirect) {
+                response.redirect(loaded.redirect);
                 return;
             }
 
             response.render('admin/client-detail', {
-                tenant: tenantResult.data!.tenant,
-                client,
+                ...loaded.context!,
                 flash: {
                     success: request.query.success as string | undefined,
                     error: request.query.error as string | undefined,
                 },
                 newSecret: request.query.newSecret as string | undefined,
+                mintedToken: null,
             });
         } catch (error) {
             console.error('Admin UI client detail error:', error);
             response.redirect(
                 `/admin/ui/tenants/${tenantId}?error=Failed+to+load+client`
+            );
+        }
+    }
+
+    /**
+     * Resource detail — reverse view: an ApiResource and the clients granted
+     * access to it. Useful for auditing "who can request tokens for this API?"
+     * GET /admin/ui/tenants/:id/api-resources/:resourceId
+     */
+    static async resourceDetail(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const resourceId = request.params.resourceId;
+
+        try {
+            const [tenantResult, resourcesResult] = await Promise.all([
+                tenantAdminService.getTenant(tenantId),
+                tenantAdminService.listApiResources(tenantId),
+            ]);
+
+            if (!tenantResult.success) {
+                response.redirect('/admin/ui/dashboard?error=Tenant+not+found');
+                return;
+            }
+
+            const resources = resourcesResult.success
+                ? resourcesResult.data!.resources
+                : [];
+            const resource = resources.find(
+                (r: { id: string }) => r.id === resourceId
+            );
+
+            if (!resource) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}?error=API+resource+not+found`
+                );
+                return;
+            }
+
+            response.render('admin/resource-detail', {
+                tenant: tenantResult.data!.tenant,
+                resource,
+                flash: {
+                    success: request.query.success as string | undefined,
+                    error: request.query.error as string | undefined,
+                },
+            });
+        } catch (error) {
+            console.error('Admin UI resource detail error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+load+resource`
             );
         }
     }
@@ -719,6 +832,226 @@ export class AdminUiController {
             console.error('Admin UI remove member error:', error);
             response.redirect(
                 `/admin/ui/tenants/${tenantId}?error=Failed+to+remove+member`
+            );
+        }
+    }
+
+    /**
+     * Create an API resource (audience) for a tenant
+     * POST /admin/ui/tenants/:id/api-resources
+     */
+    static async createApiResource(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const { identifier, displayName } = request.body;
+
+        if (!identifier?.trim() || !displayName?.trim()) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Identifier+and+display+name+are+required`
+            );
+            return;
+        }
+
+        try {
+            const result = await tenantAdminService.createApiResource(tenantId, {
+                identifier: identifier.trim(),
+                displayName: displayName.trim(),
+            });
+            if (!result.success) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
+                );
+                return;
+            }
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?success=${encodeURIComponent(`API resource "${identifier.trim()}" created`)}`
+            );
+        } catch (error) {
+            console.error('Admin UI create API resource error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+create+API+resource`
+            );
+        }
+    }
+
+    /**
+     * Delete an API resource
+     * POST /admin/ui/tenants/:id/api-resources/:resourceId/delete
+     */
+    static async deleteApiResource(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { id: tenantId, resourceId } = request.params;
+
+        try {
+            const result = await tenantAdminService.deleteApiResource(resourceId);
+            if (!result.success) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
+                );
+                return;
+            }
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?success=API+resource+deleted`
+            );
+        } catch (error) {
+            console.error('Admin UI delete API resource error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+delete+API+resource`
+            );
+        }
+    }
+
+    /**
+     * Save a client's audience grants. Takes the full desired set of
+     * apiResourceIds from a checkbox list and diffs against existing grants,
+     * issuing grant/revoke calls for the delta.
+     * POST /admin/ui/tenants/:id/clients/:clientId/audiences
+     */
+    static async updateClientAudiences(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { id: tenantId, clientId } = request.params;
+
+        // Checkbox arrays arrive as string | string[] | undefined.
+        const raw = request.body.audienceIds;
+        const desiredIds: string[] = Array.isArray(raw)
+            ? raw
+            : raw
+              ? [raw]
+              : [];
+
+        try {
+            const currentResult =
+                await tenantAdminService.listClientAudiences(clientId);
+            if (!currentResult.success) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=${encodeURIComponent(currentResult.error!.message)}`
+                );
+                return;
+            }
+
+            const currentIds: string[] = currentResult.data!.audiences.map(
+                (g: { apiResourceId: string }) => g.apiResourceId
+            );
+            const desiredSet = new Set(desiredIds);
+            const currentSet = new Set(currentIds);
+
+            const toGrant = desiredIds.filter((id) => !currentSet.has(id));
+            const toRevoke = currentIds.filter((id) => !desiredSet.has(id));
+
+            // Process sequentially to keep errors attributable.
+            for (const resourceId of toRevoke) {
+                const r = await tenantAdminService.revokeClientAudience(
+                    clientId,
+                    resourceId
+                );
+                if (!r.success) {
+                    response.redirect(
+                        `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=${encodeURIComponent(r.error!.message)}`
+                    );
+                    return;
+                }
+            }
+            for (const resourceId of toGrant) {
+                const r = await tenantAdminService.grantClientAudience(
+                    clientId,
+                    resourceId
+                );
+                if (!r.success) {
+                    response.redirect(
+                        `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=${encodeURIComponent(r.error!.message)}`
+                    );
+                    return;
+                }
+            }
+
+            const changed = toGrant.length + toRevoke.length;
+            const msg =
+                changed === 0
+                    ? 'No changes'
+                    : `Grants updated (${toGrant.length} added, ${toRevoke.length} removed)`;
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}/clients/${clientId}?success=${encodeURIComponent(msg)}`
+            );
+        } catch (error) {
+            console.error('Admin UI update audiences error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=Failed+to+update+audience+grants`
+            );
+        }
+    }
+
+    /**
+     * Mint a test RS256 token for this client (developer smoke test).
+     * Renders the client-detail page directly with the token in context to
+     * avoid stuffing long JWTs into the URL query string.
+     * POST /admin/ui/tenants/:id/clients/:clientId/mint-token
+     */
+    static async mintTestToken(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { id: tenantId, clientId } = request.params;
+        const { accountId, audience, expiresIn } = request.body;
+
+        const parsedAccountId = parseInt(accountId);
+        if (isNaN(parsedAccountId)) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=Invalid+account`
+            );
+            return;
+        }
+        if (!audience) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=Audience+is+required`
+            );
+            return;
+        }
+
+        try {
+            const mintResult = await tenantAdminService.mintTestToken(tenantId, {
+                accountId: parsedAccountId,
+                audience,
+                expiresIn: expiresIn || '1h',
+            });
+
+            const loaded = await AdminUiController.loadClientContext(
+                tenantId,
+                clientId
+            );
+            if (loaded.redirect) {
+                response.redirect(loaded.redirect);
+                return;
+            }
+
+            if (!mintResult.success) {
+                response.render('admin/client-detail', {
+                    ...loaded.context!,
+                    flash: { error: mintResult.error!.message },
+                    newSecret: undefined,
+                    mintedToken: null,
+                });
+                return;
+            }
+
+            response.render('admin/client-detail', {
+                ...loaded.context!,
+                flash: { success: 'Test token minted' },
+                newSecret: undefined,
+                mintedToken: {
+                    ...mintResult.data,
+                    mintedForAccountId: parsedAccountId,
+                },
+            });
+        } catch (error) {
+            console.error('Admin UI mint test token error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}/clients/${clientId}?error=Failed+to+mint+test+token`
             );
         }
     }

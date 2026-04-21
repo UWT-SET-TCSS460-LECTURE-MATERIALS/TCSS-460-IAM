@@ -25,7 +25,11 @@ export const tenantAdminService = {
             orderBy: { createdAt: 'desc' },
             include: {
                 _count: {
-                    select: { memberships: true, clients: true },
+                    select: {
+                        memberships: true,
+                        clients: true,
+                        apiResources: true,
+                    },
                 },
             },
         });
@@ -44,6 +48,7 @@ export const tenantAdminService = {
                     brandingColor: t.brandingColor,
                     memberCount: t._count.memberships,
                     clientCount: t._count.clients,
+                    apiResourceCount: t._count.apiResources,
                     createdAt: t.createdAt,
                 })),
             },
