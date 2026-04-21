@@ -41,12 +41,18 @@
                     </div>
                 <% } %>
 
-                <form method="POST" action="/oauth/authorize">
+                <form method="POST" action="<%= typeof formAction !== 'undefined' && formAction ? formAction : '/oauth/authorize' %>">
                     <input type="hidden" name="client_id" value="<%= clientId %>">
                     <input type="hidden" name="redirect_uri" value="<%= redirectUri %>">
                     <input type="hidden" name="state" value="<%= state %>">
                     <input type="hidden" name="code_challenge" value="<%= codeChallenge %>">
                     <input type="hidden" name="code_challenge_method" value="<%= codeChallengeMethod %>">
+                    <% if (typeof scope !== 'undefined' && scope) { %>
+                    <input type="hidden" name="scope" value="<%= scope %>">
+                    <% } %>
+                    <% if (typeof audience !== 'undefined' && audience) { %>
+                    <input type="hidden" name="audience" value="<%= audience %>">
+                    <% } %>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
@@ -69,7 +75,7 @@
                 <div class="text-center">
                     <a href="/account/forgot-password" class="text-muted small">Forgot password?</a>
                     <span class="text-muted small mx-2">|</span>
-                    <a href="/oauth/authorize/register?client_id=<%= clientId %>&redirect_uri=<%= encodeURIComponent(redirectUri) %>&state=<%= state %>&code_challenge=<%= codeChallenge %>&code_challenge_method=<%= codeChallengeMethod %>" class="text-muted small">Create account</a>
+                    <a href="<%= typeof formAction !== 'undefined' && formAction ? formAction + '/register' : '/oauth/authorize/register' %>?client_id=<%= clientId %>&redirect_uri=<%= encodeURIComponent(redirectUri) %>&state=<%= state %>&code_challenge=<%= codeChallenge %>&code_challenge_method=<%= codeChallengeMethod %><%= typeof scope !== 'undefined' && scope ? '&scope=' + encodeURIComponent(scope) : '' %><%= typeof audience !== 'undefined' && audience ? '&audience=' + encodeURIComponent(audience) : '' %>" class="text-muted small">Create account</a>
                 </div>
 
                 <hr class="my-3">

@@ -732,4 +732,197 @@ export class TenantAdminController {
             );
         }
     }
+
+    // ===== API RESOURCE MANAGEMENT (v2 OAuth) =====
+
+    /**
+     * List API resources for a tenant
+     * GET /admin/tenants/:id/api-resources
+     */
+    static async listApiResources(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+
+        try {
+            const result = await tenantAdminService.listApiResources(tenantId);
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, result.data, 'API resources retrieved');
+        } catch (error) {
+            console.error('Error listing API resources:', error);
+            sendError(response, 500, 'Failed to list API resources', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    /**
+     * Create an API resource for a tenant
+     * POST /admin/tenants/:id/api-resources
+     */
+    static async createApiResource(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const { identifier, displayName } = request.body;
+
+        if (!identifier || !displayName) {
+            sendError(response, 400, 'identifier and displayName are required', ErrorCodes.VALD_MISSING_FIELDS);
+            return;
+        }
+
+        try {
+            const result = await tenantAdminService.createApiResource(tenantId, {
+                identifier,
+                displayName,
+            });
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, result.data, 'API resource created', 201);
+        } catch (error) {
+            console.error('Error creating API resource:', error);
+            sendError(response, 500, 'Failed to create API resource', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    /**
+     * Delete an API resource
+     * DELETE /admin/tenants/:id/api-resources/:resourceId
+     */
+    static async deleteApiResource(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { resourceId } = request.params;
+
+        try {
+            const result = await tenantAdminService.deleteApiResource(resourceId);
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, null, 'API resource deleted');
+        } catch (error) {
+            console.error('Error deleting API resource:', error);
+            sendError(response, 500, 'Failed to delete API resource', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    // ===== CLIENT AUDIENCE GRANTS =====
+
+    /**
+     * List allowed audiences for a client
+     * GET /admin/tenants/:id/clients/:clientId/audiences
+     */
+    static async listClientAudiences(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { clientId } = request.params;
+
+        try {
+            const result = await tenantAdminService.listClientAudiences(clientId);
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, result.data, 'Client audiences retrieved');
+        } catch (error) {
+            console.error('Error listing client audiences:', error);
+            sendError(response, 500, 'Failed to list client audiences', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    /**
+     * Grant a client access to an API resource audience
+     * POST /admin/tenants/:id/clients/:clientId/audiences
+     */
+    static async grantClientAudience(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { clientId } = request.params;
+        const { apiResourceId } = request.body;
+
+        if (!apiResourceId) {
+            sendError(response, 400, 'apiResourceId is required', ErrorCodes.VALD_MISSING_FIELDS);
+            return;
+        }
+
+        try {
+            const result = await tenantAdminService.grantClientAudience(clientId, apiResourceId);
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, result.data, 'Audience granted', 201);
+        } catch (error) {
+            console.error('Error granting audience:', error);
+            sendError(response, 500, 'Failed to grant audience', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    /**
+     * Revoke a client's access to an API resource audience
+     * DELETE /admin/tenants/:id/clients/:clientId/audiences/:resourceId
+     */
+    static async revokeClientAudience(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const { clientId, resourceId } = request.params;
+
+        try {
+            const result = await tenantAdminService.revokeClientAudience(clientId, resourceId);
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, null, 'Audience revoked');
+        } catch (error) {
+            console.error('Error revoking audience:', error);
+            sendError(response, 500, 'Failed to revoke audience', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
+
+    // ===== ADMIN MINT TOKEN (v2 OAuth) =====
+
+    /**
+     * Mint an RS256 test token for a given user + audience
+     * POST /admin/tenants/:id/mint-token
+     */
+    static async mintTestToken(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const { accountId, audience, role, expiresIn } = request.body;
+
+        if (!accountId || !audience) {
+            sendError(response, 400, 'accountId and audience are required', ErrorCodes.VALD_MISSING_FIELDS);
+            return;
+        }
+
+        try {
+            const result = await tenantAdminService.mintTestToken(tenantId, {
+                accountId: parseInt(accountId, 10),
+                audience,
+                role: role ? parseInt(role, 10) : undefined,
+                expiresIn: expiresIn || '1h',
+            });
+            if (!result.success) {
+                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                return;
+            }
+            sendSuccess(response, result.data, 'Test token minted');
+        } catch (error) {
+            console.error('Error minting test token:', error);
+            sendError(response, 500, 'Failed to mint token', ErrorCodes.SRVR_DATABASE_ERROR);
+        }
+    }
 }

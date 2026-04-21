@@ -7,6 +7,9 @@ const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
 
 const emailRequiredEnvVars = ['EMAIL_USER', 'EMAIL_PASSWORD'];
 
+// Required when v2 OAuth (RS256) is enabled
+const rs256RequiredEnvVars = ['JWT_PRIVATE_KEY_PEM', 'JWT_KEY_ID', 'JWT_ISSUER'];
+
 /**
  * Optional environment variables with defaults
  */
@@ -27,10 +30,13 @@ const optionalEnvVars = {
  * Call this at application startup
  */
 export const validateEnv = (): void => {
-    const allRequired =
-        process.env.SEND_EMAILS === 'true'
-            ? [...requiredEnvVars, ...emailRequiredEnvVars]
-            : requiredEnvVars;
+    let allRequired = [...requiredEnvVars];
+    if (process.env.SEND_EMAILS === 'true') {
+        allRequired = [...allRequired, ...emailRequiredEnvVars];
+    }
+    if (process.env.ENABLE_V2_OAUTH !== 'false') {
+        allRequired = [...allRequired, ...rs256RequiredEnvVars];
+    }
 
     const missing = allRequired.filter((key) => !process.env[key]);
 

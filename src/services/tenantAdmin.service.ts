@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { ErrorCodes } from '../core/utilities/errorCodes';
 import { RoleName, UserRole } from '../core/models';
 import { ServiceResult } from './admin.service';
+import { signRS256 } from '../core/utilities/rsaUtils';
 
 function generateClientId(): string {
     return `client_${crypto.randomBytes(16).toString('hex')}`;
@@ -773,6 +774,240 @@ export const tenantAdminService = {
                     lastName: updated.lastName,
                     email: updated.email,
                     username: updated.username,
+                },
+            },
+        };
+    },
+
+    // ===== API RESOURCE MANAGEMENT (v2 OAuth) =====
+
+    async listApiResources(tenantId: string): Promise<ServiceResult<any>> {
+        const tenant = await prisma.tenant.findUnique({ where: { tenantId } });
+        if (!tenant) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+            };
+        }
+
+        const resources = await prisma.apiResource.findMany({
+            where: { tenantId },
+            include: { allowedAudiences: { include: { client: { select: { clientId: true, clientName: true } } } } },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        return { success: true, data: { resources } };
+    },
+
+    async createApiResource(
+        tenantId: string,
+        data: { identifier: string; displayName: string }
+    ): Promise<ServiceResult<any>> {
+        const tenant = await prisma.tenant.findUnique({ where: { tenantId } });
+        if (!tenant) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+            };
+        }
+
+        // Check uniqueness
+        const existing = await prisma.apiResource.findUnique({
+            where: { tenantId_identifier: { tenantId, identifier: data.identifier } },
+        });
+        if (existing) {
+            return {
+                success: false,
+                error: { status: 409, message: `API resource "${data.identifier}" already exists in this tenant`, code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        const resource = await prisma.apiResource.create({
+            data: {
+                tenantId,
+                identifier: data.identifier,
+                displayName: data.displayName,
+            },
+        });
+
+        return { success: true, data: { resource } };
+    },
+
+    async deleteApiResource(resourceId: string): Promise<ServiceResult<any>> {
+        const resource = await prisma.apiResource.findUnique({ where: { id: resourceId } });
+        if (!resource) {
+            return {
+                success: false,
+                error: { status: 404, message: 'API resource not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        // Cascade deletes ClientAllowedAudience rows (via onDelete: Cascade in schema)
+        await prisma.apiResource.delete({ where: { id: resourceId } });
+
+        return { success: true, data: null };
+    },
+
+    // ===== CLIENT AUDIENCE GRANTS =====
+
+    async listClientAudiences(clientId: string): Promise<ServiceResult<any>> {
+        const client = await prisma.oAuthClient.findUnique({ where: { clientId } });
+        if (!client) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Client not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        const audiences = await prisma.clientAllowedAudience.findMany({
+            where: { clientId },
+            include: { apiResource: true },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        return { success: true, data: { audiences } };
+    },
+
+    async grantClientAudience(
+        clientId: string,
+        apiResourceId: string
+    ): Promise<ServiceResult<any>> {
+        // Verify both exist
+        const client = await prisma.oAuthClient.findUnique({ where: { clientId } });
+        if (!client) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Client not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        const resource = await prisma.apiResource.findUnique({ where: { id: apiResourceId } });
+        if (!resource) {
+            return {
+                success: false,
+                error: { status: 404, message: 'API resource not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        // Check not already granted
+        const existing = await prisma.clientAllowedAudience.findUnique({
+            where: { clientId_apiResourceId: { clientId, apiResourceId } },
+        });
+        if (existing) {
+            return {
+                success: false,
+                error: { status: 409, message: 'Audience already granted to this client', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        const grant = await prisma.clientAllowedAudience.create({
+            data: { clientId, apiResourceId },
+            include: { apiResource: true },
+        });
+
+        return { success: true, data: { grant } };
+    },
+
+    async revokeClientAudience(
+        clientId: string,
+        apiResourceId: string
+    ): Promise<ServiceResult<any>> {
+        const existing = await prisma.clientAllowedAudience.findUnique({
+            where: { clientId_apiResourceId: { clientId, apiResourceId } },
+        });
+        if (!existing) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Audience grant not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        await prisma.clientAllowedAudience.delete({
+            where: { clientId_apiResourceId: { clientId, apiResourceId } },
+        });
+
+        return { success: true, data: null };
+    },
+
+    // ===== ADMIN MINT TOKEN (v2 OAuth) =====
+
+    async mintTestToken(
+        tenantId: string,
+        params: { accountId: number; audience: string; role?: number; expiresIn?: string }
+    ): Promise<ServiceResult<any>> {
+        // Verify tenant
+        const tenant = await prisma.tenant.findUnique({ where: { tenantId } });
+        if (!tenant) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+            };
+        }
+
+        // Verify account exists
+        const account = await prisma.account.findUnique({ where: { accountId: params.accountId } });
+        if (!account) {
+            return {
+                success: false,
+                error: { status: 404, message: 'Account not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        // Verify audience exists in this tenant
+        const resource = await prisma.apiResource.findUnique({
+            where: { tenantId_identifier: { tenantId, identifier: params.audience } },
+        });
+        if (!resource) {
+            return {
+                success: false,
+                error: { status: 404, message: `API resource "${params.audience}" not found in tenant`, code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+            };
+        }
+
+        // Determine role (param override > membership > default)
+        let role = params.role;
+        if (role === undefined) {
+            const membership = await prisma.tenantMembership.findUnique({
+                where: { accountId_tenantId: { accountId: params.accountId, tenantId } },
+            });
+            role = membership?.role || 1;
+        }
+
+        // Mint RS256 access token
+        const accessToken = signRS256(
+            { role: RoleName[role as UserRole] || 'User' },
+            {
+                subject: String(params.accountId),
+                audience: params.audience,
+                expiresIn: params.expiresIn || '1h',
+            }
+        );
+
+        // Also mint id_token for completeness
+        const idToken = signRS256(
+            {
+                email: account.email,
+                name: `${account.firstName} ${account.lastName}`,
+            },
+            {
+                subject: String(params.accountId),
+                audience: `mint-admin-${tenantId}`,
+                expiresIn: params.expiresIn || '1h',
+            }
+        );
+
+        return {
+            success: true,
+            data: {
+                access_token: accessToken,
+                id_token: idToken,
+                token_type: 'Bearer',
+                expires_in: params.expiresIn || '1h',
+                claims: {
+                    sub: String(params.accountId),
+                    aud: params.audience,
+                    role: RoleName[role as UserRole] || 'User',
+                    email: account.email,
                 },
             },
         };

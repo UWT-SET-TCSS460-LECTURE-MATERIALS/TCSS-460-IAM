@@ -314,6 +314,93 @@ After running `npx prisma db seed`:
 
 OAuth dev client: `tcss460-dev-shared` (secret generated at seed time, check console output).
 
+---
+
+## v2 OAuth — RS256 + JWKS + Audience-Scoped Tokens
+
+v2 OAuth endpoints use **asymmetric RS256 signing** instead of shared HMAC secrets. Student backends verify tokens using the public key from the JWKS endpoint — zero secrets to protect.
+
+### Discovery
+
+| Endpoint | URL |
+|----------|-----|
+| OpenID Configuration | `GET /.well-known/openid-configuration` |
+| JWKS (public keys) | `GET /.well-known/jwks.json` |
+
+### v2 OAuth Routes
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/v2/oauth/authorize` | Login page (requires `audience` param) |
+| `POST` | `/v2/oauth/authorize` | Handle login, issue authorization code |
+| `POST` | `/v2/oauth/token` | Exchange code for RS256 `access_token` + `id_token` |
+| `GET` | `/v2/oauth/userinfo` | User profile from bearer token |
+
+### Key Differences from v1
+
+- **`audience` parameter is required** on the authorize endpoint
+- Tokens are signed with **RS256** (asymmetric) instead of HS256
+- Token response includes **`id_token`** when `scope=openid` (for NextAuth)
+- `access_token.aud` = the target API resource (e.g., `group-1-api`)
+- `id_token.aud` = the OAuth client ID (for NextAuth session)
+
+### Environment Variables (v2)
+
+```bash
+JWT_PRIVATE_KEY_PEM=<RSA private key, PEM or base64-encoded>
+JWT_KEY_ID=key-2026-04
+JWT_ISSUER=https://tcss-460-iam.onrender.com
+```
+
+### Verifying Tokens in a Resource Server (Student BEs)
+
+Install:
+
+```bash
+npm install express-jwt jwks-rsa
+```
+
+Middleware:
+
+```typescript
+import { expressjwt } from 'express-jwt';
+import jwksRsa from 'jwks-rsa';
+
+export const requireAuth = expressjwt({
+  secret: jwksRsa.expressJwtSecret({
+    jwksUri: 'https://tcss-460-iam.onrender.com/.well-known/jwks.json',
+    cache: true,
+    cacheMaxAge: 10 * 60 * 1000
+  }),
+  audience: process.env.API_AUDIENCE,   // e.g. 'group-1-api'
+  issuer: process.env.AUTH_ISSUER,      // e.g. 'https://tcss-460-iam.onrender.com'
+  algorithms: ['RS256']
+});
+```
+
+Use:
+
+```typescript
+app.get('/reviews', requireAuth, (req, res) => {
+  const userId = req.auth.sub;
+  const role = req.auth.role;
+  // ...
+});
+```
+
+### Admin: Mint Test Token
+
+```bash
+curl -X POST https://tcss-460-iam.onrender.com/admin/tenants/tcss460-sp26/mint-token \
+  -H "Authorization: Bearer <owner-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"accountId": 1, "audience": "group-1-api"}'
+```
+
+Returns a valid RS256 access_token for testing without going through the full OAuth flow.
+
+---
+
 ## License
 
 MIT

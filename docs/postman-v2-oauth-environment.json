@@ -1,0 +1,91 @@
+{
+  "id": "v2-oauth-env",
+  "name": "Auth-Squared v2 OAuth (Local)",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:13000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "client_id",
+      "value": "tcss460-dev-shared",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "client_secret",
+      "value": "dev-secret-tcss460-do-not-use-in-prod-1234567890abcdef1234567890abcdef",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "redirect_uri",
+      "value": "http://localhost:3000/api/auth/callback/tcss460",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "audience",
+      "value": "group-1-api",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_email",
+      "value": "user@auth2.dev",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_password",
+      "value": "UserPass123!",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "owner_email",
+      "value": "owner@auth2.dev",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "owner_password",
+      "value": "OwnerPass123!",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "auth_code",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "id_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "owner_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

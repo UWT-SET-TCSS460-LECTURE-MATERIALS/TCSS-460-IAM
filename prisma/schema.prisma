@@ -103,8 +103,9 @@ model Tenant {
   brandingColor String?  @map("branding_color") @db.VarChar(7)
   createdAt     DateTime @default(now()) @map("created_at")
 
-  memberships TenantMembership[]
-  clients     OAuthClient[]
+  memberships  TenantMembership[]
+  clients      OAuthClient[]
+  apiResources ApiResource[]
 
   @@map("a2_tenant")
 }
@@ -134,6 +135,7 @@ model OAuthClient {
   tenant             Tenant                   @relation(fields: [tenantId], references: [tenantId])
   authorizationCodes OAuthAuthorizationCode[]
   refreshTokens      OAuthRefreshToken[]
+  allowedAudiences   ClientAllowedAudience[]
 
   @@map("a2_oauth_client")
 }
@@ -145,6 +147,8 @@ model OAuthAuthorizationCode {
   redirectUri         String   @map("redirect_uri") @db.VarChar(512)
   codeChallenge       String?  @map("code_challenge") @db.VarChar(128)
   codeChallengeMethod String?  @map("code_challenge_method") @db.VarChar(10)
+  scope               String?  @db.VarChar(512)
+  audience            String?  @db.VarChar(255)
   expiresAt           DateTime @map("expires_at")
   used                Boolean  @default(false)
   createdAt           DateTime @default(now()) @map("created_at")
@@ -159,6 +163,7 @@ model OAuthRefreshToken {
   token     String   @id @db.VarChar(255)
   accountId Int      @map("account_id")
   clientId  String   @map("client_id") @db.VarChar(255)
+  audience  String?  @db.VarChar(255)
   expiresAt DateTime @map("expires_at")
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
@@ -167,4 +172,34 @@ model OAuthRefreshToken {
   client  OAuthClient @relation(fields: [clientId], references: [clientId])
 
   @@map("a2_oauth_refresh_token")
+}
+
+// ============================================================
+// v2 OAuth — Audience-Scoped Tokens (RS256 + JWKS)
+// ============================================================
+
+model ApiResource {
+  id          String   @id @default(cuid()) @map("resource_id")
+  tenantId    String   @map("tenant_id") @db.VarChar(255)
+  identifier  String   @db.VarChar(255)
+  displayName String   @map("display_name") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant                  @relation(fields: [tenantId], references: [tenantId])
+  allowedAudiences ClientAllowedAudience[]
+
+  @@unique([tenantId, identifier])
+  @@map("a2_api_resource")
+}
+
+model ClientAllowedAudience {
+  clientId      String   @map("client_id") @db.VarChar(255)
+  apiResourceId String   @map("api_resource_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  client      OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  apiResource ApiResource @relation(fields: [apiResourceId], references: [id], onDelete: Cascade)
+
+  @@id([clientId, apiResourceId])
+  @@map("a2_client_allowed_audience")
 }

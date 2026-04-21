@@ -41,12 +41,18 @@
                     </div>
                 <% } %>
 
-                <form method="POST" action="/oauth/authorize/register">
+                <form method="POST" action="<%= typeof formAction !== 'undefined' && formAction ? formAction + '/register' : '/oauth/authorize/register' %>">
                     <input type="hidden" name="client_id" value="<%= clientId %>">
                     <input type="hidden" name="redirect_uri" value="<%= redirectUri %>">
                     <input type="hidden" name="state" value="<%= state %>">
                     <input type="hidden" name="code_challenge" value="<%= codeChallenge %>">
                     <input type="hidden" name="code_challenge_method" value="<%= codeChallengeMethod %>">
+                    <% if (typeof scope !== 'undefined' && scope) { %>
+                    <input type="hidden" name="scope" value="<%= scope %>">
+                    <% } %>
+                    <% if (typeof audience !== 'undefined' && audience) { %>
+                    <input type="hidden" name="audience" value="<%= audience %>">
+                    <% } %>
 
                     <div class="row mb-3">
                         <div class="col">
@@ -103,7 +109,7 @@
                 </form>
 
                 <div class="text-center">
-                    <a href="/oauth/authorize?client_id=<%= clientId %>&redirect_uri=<%= encodeURIComponent(redirectUri) %>&response_type=code&state=<%= state %>&code_challenge=<%= codeChallenge %>&code_challenge_method=<%= codeChallengeMethod %>" class="text-muted small">Already have an account? Sign in</a>
+                    <a href="<%= typeof formAction !== 'undefined' && formAction ? formAction : '/oauth/authorize' %>?client_id=<%= clientId %>&redirect_uri=<%= encodeURIComponent(redirectUri) %>&response_type=code&state=<%= state %>&code_challenge=<%= codeChallenge %>&code_challenge_method=<%= codeChallengeMethod %><%= typeof scope !== 'undefined' && scope ? '&scope=' + encodeURIComponent(scope) : '' %><%= typeof audience !== 'undefined' && audience ? '&audience=' + encodeURIComponent(audience) : '' %>" class="text-muted small">Already have an account? Sign in</a>
                 </div>
 
                 <hr class="my-3">

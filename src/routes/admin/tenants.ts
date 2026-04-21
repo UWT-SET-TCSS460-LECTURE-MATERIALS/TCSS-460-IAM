@@ -114,4 +114,70 @@ tenantAdminRoutes.delete(
     TenantAdminController.removeMember
 );
 
+// ===== API RESOURCE MANAGEMENT (v2 OAuth) =====
+
+/**
+ * List API resources for a tenant
+ * GET /admin/tenants/:id/api-resources
+ */
+tenantAdminRoutes.get(
+    '/:id/api-resources',
+    TenantAdminController.listApiResources
+);
+
+/**
+ * Create an API resource for a tenant
+ * POST /admin/tenants/:id/api-resources
+ */
+tenantAdminRoutes.post(
+    '/:id/api-resources',
+    TenantAdminController.createApiResource
+);
+
+/**
+ * Delete an API resource
+ * DELETE /admin/tenants/:id/api-resources/:resourceId
+ */
+tenantAdminRoutes.delete(
+    '/:id/api-resources/:resourceId',
+    TenantAdminController.deleteApiResource
+);
+
+// ===== CLIENT AUDIENCE GRANTS (v2 OAuth) =====
+
+/**
+ * List allowed audiences for a client
+ * GET /admin/tenants/:id/clients/:clientId/audiences
+ */
+tenantAdminRoutes.get(
+    '/:id/clients/:clientId/audiences',
+    TenantAdminController.listClientAudiences
+);
+
+/**
+ * Grant a client access to an API resource audience
+ * POST /admin/tenants/:id/clients/:clientId/audiences
+ */
+tenantAdminRoutes.post(
+    '/:id/clients/:clientId/audiences',
+    TenantAdminController.grantClientAudience
+);
+
+/**
+ * Revoke a client's access to an API resource audience
+ * DELETE /admin/tenants/:id/clients/:clientId/audiences/:resourceId
+ */
+tenantAdminRoutes.delete(
+    '/:id/clients/:clientId/audiences/:resourceId',
+    TenantAdminController.revokeClientAudience
+);
+
+// ===== ADMIN MINT TOKEN (v2 OAuth) =====
+
+/**
+ * Mint an RS256 test token for a given user + audience
+ * POST /admin/tenants/:id/mint-token
+ */
+tenantAdminRoutes.post('/:id/mint-token', TenantAdminController.mintTestToken);
+
 export { tenantAdminRoutes };

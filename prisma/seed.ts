@@ -281,6 +281,105 @@ async function main() {
 
     console.log('  Created tenant memberships for seed accounts');
 
+    // ============================================================
+    // v2 OAuth — API Resources + Consumer App Clients (Ring Topology)
+    // ============================================================
+
+    const NUM_GROUPS = 9;
+
+    // Create 9 API Resources (one per student group's BE)
+    const apiResources: { id: string; identifier: string }[] = [];
+    for (let i = 1; i <= NUM_GROUPS; i++) {
+        const resource = await prisma.apiResource.upsert({
+            where: {
+                tenantId_identifier: {
+                    tenantId: 'tcss460-sp26',
+                    identifier: `group-${i}-api`,
+                },
+            },
+            update: {},
+            create: {
+                tenantId: 'tcss460-sp26',
+                identifier: `group-${i}-api`,
+                displayName: `Group ${i} API`,
+            },
+        });
+        apiResources.push({ id: resource.id, identifier: resource.identifier });
+    }
+    console.log(`  Created ${NUM_GROUPS} API resources: group-1-api through group-${NUM_GROUPS}-api`);
+
+    // Create 9 consumer-app OAuth clients (one per group's FE, Sprints 6-8)
+    // Ring topology: Group N's consumer app calls group-(N-1)-api
+    // Group 1's consumer → group-9-api, Group 2's consumer → group-1-api, etc.
+    for (let i = 1; i <= NUM_GROUPS; i++) {
+        const clientId = `group-${i}-consumer`;
+        const clientSecret = `dev-secret-group-${i}-consumer-do-not-use-in-prod-${crypto.randomBytes(16).toString('hex')}`;
+
+        await prisma.oAuthClient.upsert({
+            where: { clientId },
+            update: {
+                redirectUris: [
+                    'http://localhost:3000/api/auth/callback/tcss460',
+                    'http://localhost:3000/auth/callback',
+                ],
+            },
+            create: {
+                clientId,
+                clientSecret,
+                clientName: `Group ${i} Consumer App`,
+                tenantId: 'tcss460-sp26',
+                redirectUris: [
+                    'http://localhost:3000/api/auth/callback/tcss460',
+                    'http://localhost:3000/auth/callback',
+                ],
+            },
+        });
+
+        // Ring: Group N's consumer is allowed audience group-(N-1)-api
+        // Group 1 → group-9-api, Group 2 → group-1-api, ...
+        const upstreamIndex = i === 1 ? NUM_GROUPS : i - 1;
+        const upstreamResource = apiResources[upstreamIndex - 1]; // 0-indexed array
+
+        // Upsert the allowed audience link
+        await prisma.clientAllowedAudience.upsert({
+            where: {
+                clientId_apiResourceId: {
+                    clientId,
+                    apiResourceId: upstreamResource.id,
+                },
+            },
+            update: {},
+            create: {
+                clientId,
+                apiResourceId: upstreamResource.id,
+            },
+        });
+    }
+    console.log(
+        `  Created ${NUM_GROUPS} consumer-app clients with ring-topology audience grants`
+    );
+    console.log(
+        '  Ring: group-1-consumer → group-9-api, group-2-consumer → group-1-api, ...'
+    );
+
+    // Also grant the shared dev client access to all API resources (for instructor testing)
+    for (const resource of apiResources) {
+        await prisma.clientAllowedAudience.upsert({
+            where: {
+                clientId_apiResourceId: {
+                    clientId: 'tcss460-dev-shared',
+                    apiResourceId: resource.id,
+                },
+            },
+            update: {},
+            create: {
+                clientId: 'tcss460-dev-shared',
+                apiResourceId: resource.id,
+            },
+        });
+    }
+    console.log('  Granted tcss460-dev-shared access to all API resources (instructor testing)');
+
     console.log('Seeding complete!');
 }
 

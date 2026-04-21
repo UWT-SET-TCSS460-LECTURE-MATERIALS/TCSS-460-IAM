@@ -1,4 +1,5 @@
 // src/test/setup.ts
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 // Load test environment variables
@@ -18,6 +19,16 @@ global.console = {
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test_secret_key';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
+
+// Generate a test RSA keypair for v2 OAuth (RS256)
+const { privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+});
+process.env.JWT_PRIVATE_KEY_PEM = privateKey;
+process.env.JWT_KEY_ID = 'test-key-001';
+process.env.JWT_ISSUER = 'http://localhost:13000';
 
 // Increase timeout for database operations
 jest.setTimeout(10000);
