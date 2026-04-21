@@ -204,16 +204,53 @@
 
                         <div class="mt-2">
                             <label class="form-label fw-bold small mb-1">access_token</label>
-                            <div class="secret-box"><%= mintedToken.access_token %></div>
+                            <div class="secret-box" data-token="<%= mintedToken.access_token %>"><%= mintedToken.access_token %></div>
                             <div class="mt-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText)">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-copy-token
+                                        data-original-label="Copy access_token">
                                     Copy access_token
                                 </button>
                                 <a href="https://jwt.io" target="_blank" rel="noopener"
                                    class="btn btn-sm btn-outline-secondary">Decode on jwt.io</a>
                             </div>
                         </div>
+                        <script>
+                            (function () {
+                                var btn = document.querySelector('[data-copy-token]');
+                                if (!btn) return;
+                                btn.addEventListener('click', async function () {
+                                    var box = btn.closest('.mt-2').parentElement.querySelector('.secret-box');
+                                    var token = box.getAttribute('data-token') || box.textContent.trim();
+                                    var ok = false;
+                                    try {
+                                        if (navigator.clipboard && window.isSecureContext) {
+                                            await navigator.clipboard.writeText(token);
+                                            ok = true;
+                                        } else {
+                                            var ta = document.createElement('textarea');
+                                            ta.value = token;
+                                            ta.setAttribute('readonly', '');
+                                            ta.style.position = 'fixed';
+                                            ta.style.top = '-1000px';
+                                            document.body.appendChild(ta);
+                                            ta.select();
+                                            ok = document.execCommand('copy');
+                                            document.body.removeChild(ta);
+                                        }
+                                    } catch (e) {
+                                        ok = false;
+                                    }
+                                    btn.textContent = ok ? 'Copied!' : 'Copy failed — select manually';
+                                    btn.classList.toggle('btn-success', ok);
+                                    btn.classList.toggle('btn-outline-secondary', !ok);
+                                    setTimeout(function () {
+                                        btn.textContent = btn.getAttribute('data-original-label');
+                                        btn.classList.remove('btn-success');
+                                        btn.classList.add('btn-outline-secondary');
+                                    }, 1800);
+                                });
+                            })();
+                        </script>
                     </div>
                 <% } %>
 
