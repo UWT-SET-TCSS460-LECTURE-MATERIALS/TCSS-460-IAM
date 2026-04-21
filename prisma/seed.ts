@@ -171,13 +171,7 @@ async function main() {
         'dev-secret-tcss460-do-not-use-in-prod-1234567890abcdef1234567890abcdef';
     await prisma.oAuthClient.upsert({
         where: { clientId: 'tcss460-dev-shared' },
-        update: {
-            clientSecret: devClientSecret,
-            redirectUris: [
-                'http://localhost:3000/api/auth/callback/tcss460',
-                'http://localhost:3000/auth/callback',
-            ],
-        },
+        update: {},
         create: {
             clientId: 'tcss460-dev-shared',
             clientSecret: devClientSecret,
@@ -198,13 +192,7 @@ async function main() {
         'dev-secret-ai-tutor-do-not-use-in-prod-1234567890abcdef1234567890abcdef';
     await prisma.oAuthClient.upsert({
         where: { clientId: 'ai-tutor-app' },
-        update: {
-            clientSecret: aiTutorClientSecret,
-            redirectUris: [
-                'http://localhost:3001/api/auth/callback/tcss460',
-                'http://localhost:3001/api/auth/callback/auth2',
-            ],
-        },
+        update: {},
         create: {
             clientId: 'ai-tutor-app',
             clientSecret: aiTutorClientSecret,
@@ -317,12 +305,7 @@ async function main() {
 
         await prisma.oAuthClient.upsert({
             where: { clientId },
-            update: {
-                redirectUris: [
-                    'http://localhost:3000/api/auth/callback/tcss460',
-                    'http://localhost:3000/auth/callback',
-                ],
-            },
+            update: {},
             create: {
                 clientId,
                 clientSecret,
