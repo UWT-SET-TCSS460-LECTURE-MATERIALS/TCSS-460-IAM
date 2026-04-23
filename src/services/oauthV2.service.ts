@@ -157,8 +157,8 @@ export const oauthV2Service = {
 
         const valid = verifyPassword(
             password,
-            account.credential.saltedHash,
-            account.credential.salt || undefined
+            account.credential.salt || '',
+            account.credential.saltedHash
         );
 
         if (!valid) {
