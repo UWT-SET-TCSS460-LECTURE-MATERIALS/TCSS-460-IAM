@@ -347,6 +347,7 @@
                                     <th>Email</th>
                                     <th>Username</th>
                                     <th>Role</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -387,6 +388,20 @@
                                                     <option value="5" <%= member.roleLevel === 5 ? 'selected' : '' %>>Owner</option>
                                                 </select>
                                                 <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <% var isActive = member.accountStatus === 'active'; %>
+                                            <form method="POST" class="d-flex align-items-center gap-1"
+                                                  action="/admin/ui/tenants/<%= tenant.tenantId %>/members/<%= member.accountId %>/status">
+                                                <input type="hidden" name="status" value="<%= isActive ? 'suspended' : 'active' %>">
+                                                <span class="badge bg-<%= isActive ? 'success' : (member.accountStatus === 'pending' ? 'warning' : 'secondary') %>">
+                                                    <%= member.accountStatus %>
+                                                </span>
+                                                <button type="submit" class="btn btn-sm btn-outline-<%= isActive ? 'secondary' : 'success' %>"
+                                                        title="<%= isActive ? 'Suspend account' : 'Activate account' %>">
+                                                    <%= isActive ? 'Suspend' : 'Activate' %>
+                                                </button>
                                             </form>
                                         </td>
                                         <td>

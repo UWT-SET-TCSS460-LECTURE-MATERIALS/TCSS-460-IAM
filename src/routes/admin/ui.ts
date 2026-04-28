@@ -63,6 +63,10 @@ adminUiRoutes.post(
     AdminUiController.updateMemberRole
 );
 adminUiRoutes.post(
+    '/tenants/:id/members/:accountId/status',
+    AdminUiController.setMemberStatus
+);
+adminUiRoutes.post(
     '/tenants/:id/members/:accountId/remove',
     AdminUiController.removeMember
 );

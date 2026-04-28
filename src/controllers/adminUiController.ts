@@ -747,6 +747,47 @@ export class AdminUiController {
     }
 
     /**
+     * Set member account status (active | pending | suspended | locked)
+     * POST /admin/ui/tenants/:id/members/:accountId/status
+     */
+    static async setMemberStatus(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
+        const tenantId = request.params.id;
+        const accountId = parseInt(request.params.accountId);
+        const { status } = request.body;
+
+        if (isNaN(accountId)) {
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Invalid+account+ID`
+            );
+            return;
+        }
+
+        try {
+            const result = await tenantAdminService.setAccountStatus(
+                accountId,
+                status
+            );
+            if (!result.success) {
+                response.redirect(
+                    `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
+                );
+                return;
+            }
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?success=${encodeURIComponent(`Account status set to ${status}`)}`
+            );
+        } catch (error) {
+            console.error('Admin UI set member status error:', error);
+            response.redirect(
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+update+account+status`
+            );
+        }
+    }
+
+    /**
      * Update member role
      * POST /admin/ui/tenants/:id/members/:accountId/role
      */

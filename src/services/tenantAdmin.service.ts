@@ -784,6 +784,53 @@ export const tenantAdminService = {
         };
     },
 
+    /**
+     * Set account status (active | pending | suspended | locked)
+     */
+    async setAccountStatus(
+        accountId: number,
+        status: string
+    ): Promise<ServiceResult<any>> {
+        const allowed = ['active', 'pending', 'suspended', 'locked'];
+        if (!allowed.includes(status)) {
+            return {
+                success: false,
+                error: {
+                    status: 400,
+                    message: `Invalid status. Must be one of: ${allowed.join(', ')}`,
+                    code: ErrorCodes.VALD_INVALID_INPUT,
+                },
+            };
+        }
+
+        const account = await prisma.account.findUnique({
+            where: { accountId },
+        });
+        if (!account) {
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
+        }
+
+        const updated = await prisma.account.update({
+            where: { accountId },
+            data: { accountStatus: status, updatedAt: new Date() },
+        });
+
+        return {
+            success: true,
+            data: {
+                accountId: updated.accountId,
+                accountStatus: updated.accountStatus,
+            },
+        };
+    },
+
     // ===== API RESOURCE MANAGEMENT (v2 OAuth) =====
 
     async listApiResources(tenantId: string): Promise<ServiceResult<any>> {
