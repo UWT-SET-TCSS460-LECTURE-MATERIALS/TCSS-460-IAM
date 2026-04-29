@@ -43,6 +43,7 @@ export const tenantAdminService = {
                     description: t.description,
                     isActive: t.isActive,
                     autoProvision: t.autoProvision,
+                    autoActivate: t.autoActivate,
                     defaultRole: t.defaultRole,
                     brandingName: t.brandingName,
                     brandingColor: t.brandingColor,
@@ -96,6 +97,7 @@ export const tenantAdminService = {
                     description: tenant.description,
                     isActive: tenant.isActive,
                     autoProvision: tenant.autoProvision,
+                    autoActivate: tenant.autoActivate,
                     defaultRole: tenant.defaultRole,
                     brandingName: tenant.brandingName,
                     brandingColor: tenant.brandingColor,
@@ -115,6 +117,7 @@ export const tenantAdminService = {
         tenantName: string;
         description?: string;
         autoProvision?: boolean;
+        autoActivate?: boolean;
         defaultRole?: number;
         brandingName?: string;
         brandingColor?: string;
@@ -140,6 +143,7 @@ export const tenantAdminService = {
                 tenantName: data.tenantName,
                 description: data.description,
                 autoProvision: data.autoProvision ?? true,
+                autoActivate: data.autoActivate ?? false,
                 defaultRole: data.defaultRole ?? 1,
                 brandingName: data.brandingName,
                 brandingColor: data.brandingColor,
@@ -161,6 +165,7 @@ export const tenantAdminService = {
             tenantName?: string;
             description?: string;
             autoProvision?: boolean;
+            autoActivate?: boolean;
             defaultRole?: number;
             brandingName?: string;
             brandingColor?: string;

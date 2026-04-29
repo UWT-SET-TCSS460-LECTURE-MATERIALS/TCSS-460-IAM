@@ -259,7 +259,9 @@ export class OAuthController {
             return;
         }
 
-        // Register the account via auth service
+        // Register the account via auth service.
+        // Tenant-controlled: if autoActivate is on, accounts are usable immediately;
+        // otherwise they're 'pending' and an admin must activate before login.
         const registerResult = await authService.register({
             firstname,
             lastname,
@@ -267,6 +269,7 @@ export class OAuthController {
             password,
             username,
             phone,
+            status: tenant.autoActivate ? 'active' : 'pending',
         });
 
         if (!registerResult.success) {

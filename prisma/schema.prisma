@@ -98,6 +98,7 @@ model Tenant {
   description   String?
   isActive      Boolean  @default(true) @map("is_active")
   autoProvision Boolean  @default(true) @map("auto_provision")
+  autoActivate  Boolean  @default(false) @map("auto_activate")
   defaultRole   Int      @default(1) @map("default_role")
   brandingName  String?  @map("branding_name") @db.VarChar(255)
   brandingColor String?  @map("branding_color") @db.VarChar(7)

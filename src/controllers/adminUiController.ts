@@ -376,6 +376,7 @@ export class AdminUiController {
             brandingName,
             brandingColor,
             autoProvision,
+            autoActivate,
             defaultRole,
         } = request.body;
 
@@ -394,6 +395,7 @@ export class AdminUiController {
                 brandingName,
                 brandingColor,
                 autoProvision: autoProvision === 'on',
+                autoActivate: autoActivate === 'on',
                 defaultRole: defaultRole ? parseInt(defaultRole) : undefined,
             });
 
@@ -430,6 +432,7 @@ export class AdminUiController {
             brandingName,
             brandingColor,
             autoProvision,
+            autoActivate,
             defaultRole,
         } = request.body;
 
@@ -440,6 +443,7 @@ export class AdminUiController {
         if (brandingName !== undefined) updates.brandingName = brandingName;
         if (brandingColor !== undefined) updates.brandingColor = brandingColor;
         updates.autoProvision = autoProvision === 'on';
+        updates.autoActivate = autoActivate === 'on';
         if (defaultRole) updates.defaultRole = parseInt(defaultRole);
 
         try {

@@ -303,7 +303,11 @@ export class OAuthV2Controller {
             return;
         }
 
-        // Register
+        // Register. Tenant.autoActivate decides whether the new account is usable
+        // immediately ('active') or must be activated by an admin first ('pending').
+        // Note: v2 OAuth login requires accountStatus === 'active', so leaving
+        // autoActivate=false means the user will hit "Account is not active" until
+        // an admin clicks Activate in the tenant members table.
         const registerResult = await authService.register({
             firstname,
             lastname,
@@ -311,6 +315,7 @@ export class OAuthV2Controller {
             password,
             username,
             phone,
+            status: tenant.autoActivate ? 'active' : 'pending',
         });
 
         if (!registerResult.success) {

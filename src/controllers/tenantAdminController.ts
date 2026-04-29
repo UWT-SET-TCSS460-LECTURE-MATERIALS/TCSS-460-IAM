@@ -83,6 +83,7 @@ export class TenantAdminController {
             tenantName,
             description,
             autoProvision,
+            autoActivate,
             defaultRole,
             brandingName,
             brandingColor,
@@ -117,6 +118,7 @@ export class TenantAdminController {
                 tenantName,
                 description,
                 autoProvision,
+                autoActivate,
                 defaultRole: defaultRole ? parseInt(defaultRole) : undefined,
                 brandingName,
                 brandingColor,
@@ -162,6 +164,7 @@ export class TenantAdminController {
             tenantName,
             description,
             autoProvision,
+            autoActivate,
             defaultRole,
             brandingName,
             brandingColor,
@@ -184,6 +187,7 @@ export class TenantAdminController {
         if (tenantName !== undefined) updates.tenantName = tenantName;
         if (description !== undefined) updates.description = description;
         if (autoProvision !== undefined) updates.autoProvision = autoProvision;
+        if (autoActivate !== undefined) updates.autoActivate = autoActivate;
         if (defaultRole !== undefined)
             updates.defaultRole = parseInt(defaultRole);
         if (brandingName !== undefined) updates.brandingName = brandingName;

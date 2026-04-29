@@ -121,6 +121,12 @@
                                        name="autoProvision" <%= tenant.autoProvision ? 'checked' : '' %>>
                                 <label class="form-check-label" for="autoProvision">Auto-provision new users</label>
                             </div>
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="checkbox" id="autoActivate"
+                                       name="autoActivate" <%= tenant.autoActivate ? 'checked' : '' %>>
+                                <label class="form-check-label" for="autoActivate"
+                                       title="If checked, accounts registered via the OAuth login page are immediately active. Otherwise an admin must activate them in the members table.">Auto-activate new accounts</label>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-3">
