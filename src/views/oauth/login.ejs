@@ -37,6 +37,14 @@
                 <% if (error) { %>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <%= error %>
+                        <% if (typeof accountLoginUrl !== 'undefined' && accountLoginUrl) { %>
+                            <div class="mt-2">
+                                <a href="<%= accountLoginUrl %>" target="_blank" rel="noopener" class="alert-link">
+                                    <%= accountLoginUrl %>
+                                </a>
+                                <div class="small mt-1">Sign in there to set a new password, then return here.</div>
+                            </div>
+                        <% } %>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <% } %>

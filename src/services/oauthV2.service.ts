@@ -22,6 +22,12 @@ export interface OAuthError {
     error: string;
     error_description: string;
     status: number;
+    /**
+     * Optional sentinel for callers that need to render a different UI
+     * for specific error cases (e.g. password_change_required gets a
+     * clickable link to the account portal).
+     */
+    error_code?: string;
 }
 
 export interface OAuthResult<T> {
@@ -191,8 +197,9 @@ export const oauthV2Service = {
                 success: false,
                 error: {
                     error: 'access_denied',
+                    error_code: 'password_change_required',
                     error_description:
-                        'Your password must be changed before signing in. Open the Auth² account portal at /account/login to set a new password, then return here.',
+                        'Your password must be changed before signing in.',
                     status: 403,
                 },
             };
