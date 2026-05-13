@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { oauthV2Service } from '../services/oauthV2.service';
 import { authService } from '../services/auth.service';
 import { JwtRequest } from '../core/models';
+import { getEnvVar } from '../core/utilities/envConfig';
 
 export class OAuthV2Controller {
     /**
@@ -123,7 +124,7 @@ export class OAuthV2Controller {
         }
 
         const { tenant } = clientResult.data!;
-        const renderError = (error: string) => {
+        const renderError = (error: string, accountLoginUrl?: string) => {
             response.render('oauth/login', {
                 title: `Sign in to ${tenant.brandingName || tenant.tenantName}`,
                 tenantName: tenant.brandingName || tenant.tenantName,
@@ -138,6 +139,7 @@ export class OAuthV2Controller {
                 codeChallengeMethod: code_challenge_method || '',
                 formAction: '/v2/oauth/authorize',
                 error,
+                accountLoginUrl,
             });
         };
 
@@ -164,7 +166,17 @@ export class OAuthV2Controller {
             password
         );
         if (!authResult.success) {
-            renderError(authResult.error!.error_description);
+            // For temp-password accounts, show a clickable link to the
+            // account portal so the user can clear the flag.
+            let accountLoginUrl: string | undefined;
+            if (authResult.error!.error_code === 'password_change_required') {
+                const baseUrl = getEnvVar(
+                    'APP_BASE_URL',
+                    `http://localhost:${getEnvVar('PORT', '13000')}`
+                );
+                accountLoginUrl = `${baseUrl}/account/login`;
+            }
+            renderError(authResult.error!.error_description, accountLoginUrl);
             return;
         }
 

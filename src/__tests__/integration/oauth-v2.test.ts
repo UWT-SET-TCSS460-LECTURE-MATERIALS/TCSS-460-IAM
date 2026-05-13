@@ -315,6 +315,8 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
             // Re-renders the login form with an error; never redirects with code
             expect(res.status).toBe(200);
             expect(res.text).toMatch(/password must be changed/i);
+            // And the alert should render a link to the account portal
+            expect(res.text).toMatch(/\/account\/login/);
             expect(res.headers.location).toBeUndefined();
             // Authorization code must NOT have been created
             expect(
