@@ -294,7 +294,9 @@ async function main() {
         });
         apiResources.push({ id: resource.id, identifier: resource.identifier });
     }
-    console.log(`  Created ${NUM_GROUPS} API resources: group-1-api through group-${NUM_GROUPS}-api`);
+    console.log(
+        `  Created ${NUM_GROUPS} API resources: group-1-api through group-${NUM_GROUPS}-api`
+    );
 
     // Create 9 consumer-app OAuth clients (one per group's FE, Sprints 6-8)
     // Ring topology: Group N's consumer app calls group-(N-1)-api
@@ -361,7 +363,9 @@ async function main() {
             },
         });
     }
-    console.log('  Granted tcss460-dev-shared access to all API resources (instructor testing)');
+    console.log(
+        '  Granted tcss460-dev-shared access to all API resources (instructor testing)'
+    );
 
     console.log('Seeding complete!');
 }

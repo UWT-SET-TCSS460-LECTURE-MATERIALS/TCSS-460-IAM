@@ -4,14 +4,60 @@ import crypto from 'crypto';
 
 jest.mock('../../lib/prisma', () => {
     const mock: any = {
-        account: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn(), upsert: jest.fn(), count: jest.fn() },
-        accountCredential: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
-        tenant: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-        tenantMembership: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), count: jest.fn() },
-        oAuthClient: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
-        oAuthAuthorizationCode: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        oAuthRefreshToken: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        verificationToken: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
+        account: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+            upsert: jest.fn(),
+            count: jest.fn(),
+        },
+        accountCredential: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+        },
+        tenant: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        tenantMembership: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            count: jest.fn(),
+        },
+        oAuthClient: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        },
+        oAuthAuthorizationCode: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        oAuthRefreshToken: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        verificationToken: {
+            findFirst: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
     };
     mock.$transaction = jest.fn(async (fnOrArray: any) => {
         if (typeof fnOrArray === 'function') return fnOrArray(mock);
@@ -27,17 +73,33 @@ const TEST_SECRET = 'test_secret_key';
 process.env.JWT_SECRET = TEST_SECRET;
 
 const SEED = {
-    owner: { id: 1, email: 'owner@auth2.dev', password: 'OwnerPass123!', role: 5 },
-    admin: { id: 2, email: 'admin@auth2.dev', password: 'AdminPass123!', role: 3 },
+    owner: {
+        id: 1,
+        email: 'owner@auth2.dev',
+        password: 'OwnerPass123!',
+        role: 5,
+    },
+    admin: {
+        id: 2,
+        email: 'admin@auth2.dev',
+        password: 'AdminPass123!',
+        role: 3,
+    },
     user: { id: 3, email: 'user@auth2.dev', password: 'UserPass123!', role: 1 },
 };
 
-function makeToken(claims: { id: number; email: string; role: number }, expiresIn = '1h') {
+function makeToken(
+    claims: { id: number; email: string; role: number },
+    expiresIn = '1h'
+) {
     return jwt.sign(claims, TEST_SECRET, { expiresIn } as jwt.SignOptions);
 }
 
 function hashPassword(password: string, salt: string): string {
-    return crypto.createHash('sha256').update(password + salt).digest('hex');
+    return crypto
+        .createHash('sha256')
+        .update(password + salt)
+        .digest('hex');
 }
 
 const mockPrisma = prisma as any;
@@ -61,16 +123,14 @@ describe('POST /auth/register', () => {
             phoneVerified: false,
         });
 
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'New',
-                lastname: 'User',
-                email: 'newuser@example.com',
-                username: 'newuser',
-                password: 'SecurePass123!',
-                phone: '2065551234',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'New',
+            lastname: 'User',
+            email: 'newuser@example.com',
+            username: 'newuser',
+            password: 'SecurePass123!',
+            phone: '2065551234',
+        });
 
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
@@ -83,16 +143,14 @@ describe('POST /auth/register', () => {
             email: 'owner@auth2.dev',
         });
 
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'Dup',
-                lastname: 'User',
-                email: 'owner@auth2.dev',
-                username: 'dupuser',
-                password: 'SecurePass123!',
-                phone: '2065551234',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'Dup',
+            lastname: 'User',
+            email: 'owner@auth2.dev',
+            username: 'dupuser',
+            password: 'SecurePass123!',
+            phone: '2065551234',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
@@ -103,60 +161,52 @@ describe('POST /auth/register', () => {
             .mockResolvedValueOnce(null)
             .mockResolvedValueOnce({ accountId: 1, username: 'existinguser' });
 
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'Dup',
-                lastname: 'User',
-                email: 'unique@example.com',
-                username: 'existinguser',
-                password: 'SecurePass123!',
-                phone: '2065551234',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'Dup',
+            lastname: 'User',
+            email: 'unique@example.com',
+            username: 'existinguser',
+            password: 'SecurePass123!',
+            phone: '2065551234',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 
     it('should return 400 for missing required fields', async () => {
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'No',
-                lastname: 'Email',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'No',
+            lastname: 'Email',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 
     it('should return 400 for invalid email format', async () => {
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'Bad',
-                lastname: 'Email',
-                email: 'not-an-email',
-                username: 'bademail',
-                password: 'SecurePass123!',
-                phone: '2065551234',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'Bad',
+            lastname: 'Email',
+            email: 'not-an-email',
+            username: 'bademail',
+            password: 'SecurePass123!',
+            phone: '2065551234',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 
     it('should return 400 for short password', async () => {
-        const res = await request(app)
-            .post('/auth/register')
-            .send({
-                firstname: 'Short',
-                lastname: 'Pass',
-                email: 'shortpass@example.com',
-                username: 'shortpass',
-                password: 'abc',
-                phone: '2065551234',
-            });
+        const res = await request(app).post('/auth/register').send({
+            firstname: 'Short',
+            lastname: 'Pass',
+            email: 'shortpass@example.com',
+            username: 'shortpass',
+            password: 'abc',
+            phone: '2065551234',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
@@ -189,12 +239,10 @@ describe('POST /auth/login', () => {
             },
         });
 
-        const res = await request(app)
-            .post('/auth/login')
-            .send({
-                email: SEED.user.email,
-                password: SEED.user.password,
-            });
+        const res = await request(app).post('/auth/login').send({
+            email: SEED.user.email,
+            password: SEED.user.password,
+        });
 
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
@@ -218,12 +266,10 @@ describe('POST /auth/login', () => {
             },
         });
 
-        const res = await request(app)
-            .post('/auth/login')
-            .send({
-                email: SEED.user.email,
-                password: 'WrongPassword123!',
-            });
+        const res = await request(app).post('/auth/login').send({
+            email: SEED.user.email,
+            password: 'WrongPassword123!',
+        });
 
         expect(res.status).toBe(401);
         expect(res.body.success).toBe(false);
@@ -232,12 +278,10 @@ describe('POST /auth/login', () => {
     it('should return 401 for nonexistent email', async () => {
         (mockPrisma.account.findUnique as jest.Mock).mockResolvedValue(null);
 
-        const res = await request(app)
-            .post('/auth/login')
-            .send({
-                email: 'nobody@example.com',
-                password: 'SomePass123!',
-            });
+        const res = await request(app).post('/auth/login').send({
+            email: 'nobody@example.com',
+            password: 'SomePass123!',
+        });
 
         expect(res.status).toBe(401);
         expect(res.body.success).toBe(false);
@@ -259,12 +303,10 @@ describe('POST /auth/login', () => {
             },
         });
 
-        const res = await request(app)
-            .post('/auth/login')
-            .send({
-                email: 'suspended@example.com',
-                password: 'SomePass123!',
-            });
+        const res = await request(app).post('/auth/login').send({
+            email: 'suspended@example.com',
+            password: 'SomePass123!',
+        });
 
         expect(res.status).toBe(403);
         expect(res.body.success).toBe(false);
@@ -286,12 +328,10 @@ describe('POST /auth/login', () => {
             },
         });
 
-        const res = await request(app)
-            .post('/auth/login')
-            .send({
-                email: 'locked@example.com',
-                password: 'SomePass123!',
-            });
+        const res = await request(app).post('/auth/login').send({
+            email: 'locked@example.com',
+            password: 'SomePass123!',
+        });
 
         expect(res.status).toBe(403);
         expect(res.body.success).toBe(false);
@@ -321,7 +361,9 @@ describe('POST /auth/password/reset-request', () => {
             firstName: 'Test',
             emailVerified: true,
         });
-        (mockPrisma.verificationToken.create as jest.Mock).mockResolvedValue({});
+        (mockPrisma.verificationToken.create as jest.Mock).mockResolvedValue(
+            {}
+        );
 
         const res = await request(app)
             .post('/auth/password/reset-request')
@@ -347,23 +389,27 @@ describe('POST /auth/password/reset', () => {
 
     it('should reset password with valid token', async () => {
         const resetToken = jwt.sign(
-            { id: SEED.user.id, email: SEED.user.email, type: 'password_reset' },
+            {
+                id: SEED.user.id,
+                email: SEED.user.email,
+                type: 'password_reset',
+            },
             TEST_SECRET,
-            { expiresIn: '1h' },
+            { expiresIn: '1h' }
         );
 
         (mockPrisma.account.findUnique as jest.Mock).mockResolvedValue({
             accountId: SEED.user.id,
         });
-        (mockPrisma.accountCredential.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+        (
+            mockPrisma.accountCredential.updateMany as jest.Mock
+        ).mockResolvedValue({ count: 1 });
         (mockPrisma.account.update as jest.Mock).mockResolvedValue({});
 
-        const res = await request(app)
-            .post('/auth/password/reset')
-            .send({
-                token: resetToken,
-                password: 'NewSecurePass456!',
-            });
+        const res = await request(app).post('/auth/password/reset').send({
+            token: resetToken,
+            password: 'NewSecurePass456!',
+        });
 
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
@@ -371,17 +417,19 @@ describe('POST /auth/password/reset', () => {
 
     it('should return 400 for expired token', async () => {
         const expiredToken = jwt.sign(
-            { id: SEED.user.id, email: SEED.user.email, type: 'password_reset' },
+            {
+                id: SEED.user.id,
+                email: SEED.user.email,
+                type: 'password_reset',
+            },
             TEST_SECRET,
-            { expiresIn: '0s' },
+            { expiresIn: '0s' }
         );
 
-        const res = await request(app)
-            .post('/auth/password/reset')
-            .send({
-                token: expiredToken,
-                password: 'NewSecurePass456!',
-            });
+        const res = await request(app).post('/auth/password/reset').send({
+            token: expiredToken,
+            password: 'NewSecurePass456!',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
@@ -389,26 +437,26 @@ describe('POST /auth/password/reset', () => {
 
     it('should return 400 for invalid token type', async () => {
         const wrongTypeToken = jwt.sign(
-            { id: SEED.user.id, email: SEED.user.email, type: 'email_verification' },
+            {
+                id: SEED.user.id,
+                email: SEED.user.email,
+                type: 'email_verification',
+            },
             TEST_SECRET,
-            { expiresIn: '1h' },
+            { expiresIn: '1h' }
         );
 
-        const res = await request(app)
-            .post('/auth/password/reset')
-            .send({
-                token: wrongTypeToken,
-                password: 'NewSecurePass456!',
-            });
+        const res = await request(app).post('/auth/password/reset').send({
+            token: wrongTypeToken,
+            password: 'NewSecurePass456!',
+        });
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 
     it('should return 400 for missing fields', async () => {
-        const res = await request(app)
-            .post('/auth/password/reset')
-            .send({});
+        const res = await request(app).post('/auth/password/reset').send({});
 
         expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
@@ -423,14 +471,22 @@ describe('POST /auth/user/password/change', () => {
     it('should change password with correct old password', async () => {
         const salt = 'randomsalt123';
         const hashedPassword = hashPassword('CurrentPass123!', salt);
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
 
-        (mockPrisma.accountCredential.findUnique as jest.Mock).mockResolvedValue({
+        (
+            mockPrisma.accountCredential.findUnique as jest.Mock
+        ).mockResolvedValue({
             accountId: SEED.user.id,
             saltedHash: hashedPassword,
             salt: salt,
         });
-        (mockPrisma.accountCredential.update as jest.Mock).mockResolvedValue({});
+        (mockPrisma.accountCredential.update as jest.Mock).mockResolvedValue(
+            {}
+        );
         (mockPrisma.account.update as jest.Mock).mockResolvedValue({});
 
         const res = await request(app)
@@ -445,12 +501,57 @@ describe('POST /auth/user/password/change', () => {
         expect(res.body.success).toBe(true);
     });
 
+    it('should clear mustChangePassword when password is successfully changed', async () => {
+        const salt = 'randomsalt123';
+        const hashedPassword = hashPassword('TempPass123!', salt);
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
+
+        (
+            mockPrisma.accountCredential.findUnique as jest.Mock
+        ).mockResolvedValue({
+            accountId: SEED.user.id,
+            saltedHash: hashedPassword,
+            salt: salt,
+        });
+        (mockPrisma.accountCredential.update as jest.Mock).mockResolvedValue(
+            {}
+        );
+        (mockPrisma.account.update as jest.Mock).mockResolvedValue({});
+
+        const res = await request(app)
+            .post('/auth/user/password/change')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                oldPassword: 'TempPass123!',
+                newPassword: 'BrandNewPass456!',
+            });
+
+        expect(res.status).toBe(200);
+        // Verify the account.update call includes mustChangePassword: false
+        const accountUpdateCalls = (mockPrisma.account.update as jest.Mock).mock
+            .calls;
+        expect(accountUpdateCalls.length).toBeGreaterThan(0);
+        const updateData =
+            accountUpdateCalls[accountUpdateCalls.length - 1][0].data;
+        expect(updateData.mustChangePassword).toBe(false);
+    });
+
     it('should return 400 or 401 for wrong old password', async () => {
         const salt = 'randomsalt123';
         const hashedPassword = hashPassword('CurrentPass123!', salt);
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
 
-        (mockPrisma.accountCredential.findUnique as jest.Mock).mockResolvedValue({
+        (
+            mockPrisma.accountCredential.findUnique as jest.Mock
+        ).mockResolvedValue({
             accountId: SEED.user.id,
             saltedHash: hashedPassword,
             salt: salt,
@@ -471,9 +572,15 @@ describe('POST /auth/user/password/change', () => {
     it('should return 400 for same old and new password', async () => {
         const salt = 'randomsalt123';
         const hashedPassword = hashPassword('SamePass123!', salt);
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
 
-        (mockPrisma.accountCredential.findUnique as jest.Mock).mockResolvedValue({
+        (
+            mockPrisma.accountCredential.findUnique as jest.Mock
+        ).mockResolvedValue({
             accountId: SEED.user.id,
             saltedHash: hashedPassword,
             salt: salt,
@@ -492,12 +599,10 @@ describe('POST /auth/user/password/change', () => {
     });
 
     it('should return 401 or 403 with no auth token', async () => {
-        const res = await request(app)
-            .post('/auth/user/password/change')
-            .send({
-                oldPassword: 'CurrentPass123!',
-                newPassword: 'NewSecurePass456!',
-            });
+        const res = await request(app).post('/auth/user/password/change').send({
+            oldPassword: 'CurrentPass123!',
+            newPassword: 'NewSecurePass456!',
+        });
 
         expect([401, 403]).toContain(res.status);
     });
@@ -505,9 +610,15 @@ describe('POST /auth/user/password/change', () => {
     it('should return 400 for short new password', async () => {
         const salt = 'randomsalt123';
         const hashedPassword = hashPassword('CurrentPass123!', salt);
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
 
-        (mockPrisma.accountCredential.findUnique as jest.Mock).mockResolvedValue({
+        (
+            mockPrisma.accountCredential.findUnique as jest.Mock
+        ).mockResolvedValue({
             accountId: SEED.user.id,
             saltedHash: hashedPassword,
             salt: salt,
@@ -532,7 +643,11 @@ describe('GET /jwt_test', () => {
     });
 
     it('should return 200 with valid token', async () => {
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+        const token = makeToken({
+            id: SEED.user.id,
+            email: SEED.user.email,
+            role: SEED.user.role,
+        });
 
         const res = await request(app)
             .get('/jwt_test')
@@ -549,7 +664,10 @@ describe('GET /jwt_test', () => {
     });
 
     it('should return 200 with expired token (public endpoint)', async () => {
-        const token = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role }, '0s');
+        const token = makeToken(
+            { id: SEED.user.id, email: SEED.user.email, role: SEED.user.role },
+            '0s'
+        );
 
         const res = await request(app)
             .get('/jwt_test')

@@ -3,14 +3,60 @@ import jwt from 'jsonwebtoken';
 
 jest.mock('../../lib/prisma', () => {
     const mock: any = {
-        account: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn(), upsert: jest.fn(), count: jest.fn() },
-        accountCredential: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
-        tenant: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-        tenantMembership: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), count: jest.fn() },
-        oAuthClient: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
-        oAuthAuthorizationCode: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        oAuthRefreshToken: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        verificationToken: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
+        account: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+            upsert: jest.fn(),
+            count: jest.fn(),
+        },
+        accountCredential: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+        },
+        tenant: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        tenantMembership: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            count: jest.fn(),
+        },
+        oAuthClient: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        },
+        oAuthAuthorizationCode: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        oAuthRefreshToken: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        verificationToken: {
+            findFirst: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
     };
     mock.$transaction = jest.fn(async (fnOrArray: any) => {
         if (typeof fnOrArray === 'function') return fnOrArray(mock);
@@ -26,20 +72,45 @@ const TEST_SECRET = 'test_secret_key';
 process.env.JWT_SECRET = TEST_SECRET;
 
 const SEED = {
-    owner: { id: 1, email: 'owner@auth2.dev', password: 'OwnerPass123!', role: 5 },
-    admin: { id: 2, email: 'admin@auth2.dev', password: 'AdminPass123!', role: 3 },
+    owner: {
+        id: 1,
+        email: 'owner@auth2.dev',
+        password: 'OwnerPass123!',
+        role: 5,
+    },
+    admin: {
+        id: 2,
+        email: 'admin@auth2.dev',
+        password: 'AdminPass123!',
+        role: 3,
+    },
     user: { id: 3, email: 'user@auth2.dev', password: 'UserPass123!', role: 1 },
 };
 
-function makeToken(claims: { id: number; email: string; role: number }, expiresIn = '1h') {
+function makeToken(
+    claims: { id: number; email: string; role: number },
+    expiresIn = '1h'
+) {
     return jwt.sign(claims, TEST_SECRET, { expiresIn } as jwt.SignOptions);
 }
 
 const mockPrisma = prisma as any;
 
-const adminToken = makeToken({ id: SEED.admin.id, email: SEED.admin.email, role: SEED.admin.role });
-const ownerToken = makeToken({ id: SEED.owner.id, email: SEED.owner.email, role: SEED.owner.role });
-const userToken = makeToken({ id: SEED.user.id, email: SEED.user.email, role: SEED.user.role });
+const adminToken = makeToken({
+    id: SEED.admin.id,
+    email: SEED.admin.email,
+    role: SEED.admin.role,
+});
+const ownerToken = makeToken({
+    id: SEED.owner.id,
+    email: SEED.owner.email,
+    role: SEED.owner.role,
+});
+const userToken = makeToken({
+    id: SEED.user.id,
+    email: SEED.user.email,
+    role: SEED.user.role,
+});
 
 describe('GET /admin/users', () => {
     beforeEach(() => {
@@ -48,8 +119,22 @@ describe('GET /admin/users', () => {
 
     it('should return paginated users for admin', async () => {
         (mockPrisma.account.findMany as jest.Mock).mockResolvedValue([
-            { accountId: 1, email: 'owner@auth2.dev', firstName: 'Owner', lastName: 'User', accountRole: 5, accountStatus: 'active' },
-            { accountId: 2, email: 'admin@auth2.dev', firstName: 'Admin', lastName: 'User', accountRole: 3, accountStatus: 'active' },
+            {
+                accountId: 1,
+                email: 'owner@auth2.dev',
+                firstName: 'Owner',
+                lastName: 'User',
+                accountRole: 5,
+                accountStatus: 'active',
+            },
+            {
+                accountId: 2,
+                email: 'admin@auth2.dev',
+                firstName: 'Admin',
+                lastName: 'User',
+                accountRole: 3,
+                accountStatus: 'active',
+            },
         ]);
         (mockPrisma.account.count as jest.Mock).mockResolvedValue(2);
 
@@ -66,7 +151,14 @@ describe('GET /admin/users', () => {
 
     it('should filter users by status', async () => {
         (mockPrisma.account.findMany as jest.Mock).mockResolvedValue([
-            { accountId: 1, email: 'owner@auth2.dev', firstName: 'Owner', lastName: 'User', accountRole: 5, accountStatus: 'active' },
+            {
+                accountId: 1,
+                email: 'owner@auth2.dev',
+                firstName: 'Owner',
+                lastName: 'User',
+                accountRole: 5,
+                accountStatus: 'active',
+            },
         ]);
         (mockPrisma.account.count as jest.Mock).mockResolvedValue(1);
 
@@ -81,7 +173,14 @@ describe('GET /admin/users', () => {
 
     it('should filter users by role', async () => {
         (mockPrisma.account.findMany as jest.Mock).mockResolvedValue([
-            { accountId: 2, email: 'admin@auth2.dev', firstName: 'Admin', lastName: 'User', accountRole: 3, accountStatus: 'active' },
+            {
+                accountId: 2,
+                email: 'admin@auth2.dev',
+                firstName: 'Admin',
+                lastName: 'User',
+                accountRole: 3,
+                accountStatus: 'active',
+            },
         ]);
         (mockPrisma.account.count as jest.Mock).mockResolvedValue(1);
 
@@ -297,7 +396,15 @@ describe('PUT /admin/users/:id/role', () => {
     it('should change a user role', async () => {
         (mockPrisma.account.findUnique as jest.Mock)
             .mockResolvedValueOnce({ accountId: SEED.user.id, accountRole: 1 })
-            .mockResolvedValueOnce({ accountId: SEED.user.id, accountRole: 1, firstName: 'Test', lastName: 'User', username: 'testuser', email: SEED.user.email, accountStatus: 'active' });
+            .mockResolvedValueOnce({
+                accountId: SEED.user.id,
+                accountRole: 1,
+                firstName: 'Test',
+                lastName: 'User',
+                username: 'testuser',
+                email: SEED.user.email,
+                accountStatus: 'active',
+            });
         (mockPrisma.account.update as jest.Mock).mockResolvedValue({
             accountId: SEED.user.id,
             email: SEED.user.email,
@@ -340,7 +447,15 @@ describe('GET /admin/users/search', () => {
 
     it('should return search results', async () => {
         (mockPrisma.account.findMany as jest.Mock).mockResolvedValue([
-            { accountId: 3, email: 'user@auth2.dev', firstName: 'Test', lastName: 'User', username: 'testuser', accountRole: 1, accountStatus: 'active' },
+            {
+                accountId: 3,
+                email: 'user@auth2.dev',
+                firstName: 'Test',
+                lastName: 'User',
+                username: 'testuser',
+                accountRole: 1,
+                accountStatus: 'active',
+            },
         ]);
         (mockPrisma.account.count as jest.Mock).mockResolvedValue(1);
 

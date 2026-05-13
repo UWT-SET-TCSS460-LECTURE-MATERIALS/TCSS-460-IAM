@@ -16,8 +16,7 @@ import { getEnvVar } from '../core/utilities/envConfig';
  * Render login form for account management pages.
  */
 export const getAccountLogin = (req: Request, res: Response): void => {
-    const returnTo =
-        (req.query.returnTo as string) || '/account/profile';
+    const returnTo = (req.query.returnTo as string) || '/account/profile';
     const flash: Record<string, string> = {};
 
     if (req.query.deleted === 'true') {
@@ -79,6 +78,13 @@ export const postAccountLogin = async (
             sameSite: 'lax',
             maxAge: 14 * 24 * 60 * 60 * 1000,
         });
+
+        // If the user signed in with a temp password, force them through
+        // the change-password page before letting them reach returnTo.
+        if (result.data!.mustChangePassword) {
+            res.redirect('/account/change-password?reason=temp_password');
+            return;
+        }
 
         res.redirect(returnTo);
     } catch (err) {
@@ -317,9 +323,14 @@ export const postResetPassword = async (
  * Render the change password form (session required).
  */
 export const getChangePassword = (req: JwtRequest, res: Response): void => {
+    const flash: { info?: string } = {};
+    if (req.query.reason === 'temp_password') {
+        flash.info =
+            'You signed in with a temporary password. Please choose a new password to continue.';
+    }
     res.render('account/change-password', {
         title: 'Change Password - Auth\u00B2',
-        flash: {},
+        flash,
     });
 };
 

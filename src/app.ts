@@ -39,26 +39,38 @@ export const createApp = (): Express => {
     // Security headers
     // crossOriginOpenerPolicy disabled: the OAuth popup flow requires
     // window.opener to signal the parent app (different origin) to close
-    app.use(helmet({
-        crossOriginOpenerPolicy: false,
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-                styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-                imgSrc: ["'self'", "data:"],
-                fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-                connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
-                formAction: null,
-            }
-        }
-    }));
+    app.use(
+        helmet({
+            crossOriginOpenerPolicy: false,
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: [
+                        "'self'",
+                        "'unsafe-inline'",
+                        'https://cdn.jsdelivr.net',
+                    ],
+                    styleSrc: [
+                        "'self'",
+                        "'unsafe-inline'",
+                        'https://cdn.jsdelivr.net',
+                    ],
+                    imgSrc: ["'self'", 'data:'],
+                    fontSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+                    connectSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+                    formAction: null,
+                },
+            },
+        })
+    );
 
     // CORS
-    app.use(cors({
-        origin: true,
-        credentials: true
-    }));
+    app.use(
+        cors({
+            origin: true,
+            credentials: true,
+        })
+    );
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());
@@ -76,13 +88,22 @@ export const createApp = (): Express => {
     // Swagger UI requires inline scripts/styles, so relax CSP for this path
     try {
         const swaggerDocument = YAML.load('./docs/swagger.yaml');
-        app.use('/api-docs',
+        app.use(
+            '/api-docs',
             helmet.contentSecurityPolicy({
                 directives: {
                     defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-                    styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-                    imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
+                    scriptSrc: [
+                        "'self'",
+                        "'unsafe-inline'",
+                        'https://cdn.jsdelivr.net',
+                    ],
+                    styleSrc: [
+                        "'self'",
+                        "'unsafe-inline'",
+                        'https://cdn.jsdelivr.net',
+                    ],
+                    imgSrc: ["'self'", 'data:', 'https://cdn.jsdelivr.net'],
                 },
             }),
             swaggerUi.serve,
@@ -113,7 +134,9 @@ export const createApp = (): Express => {
             res.render('oauth/register', { ...previewData });
         });
         app.get('/dev/preview/error', (_req, res) => {
-            res.render('oauth/error', { error: 'This is a sample error message for preview purposes.' });
+            res.render('oauth/error', {
+                error: 'This is a sample error message for preview purposes.',
+            });
         });
     }
 

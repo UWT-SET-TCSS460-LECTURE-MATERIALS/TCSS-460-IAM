@@ -25,6 +25,13 @@ export interface RegisterInput {
 
 export interface LoginResult {
     accessToken: string;
+    /**
+     * True when the user authenticated with a temp password and must change
+     * it before being granted full access. The session cookie is still set
+     * (so the change-password page works) but callers should redirect to
+     * /account/change-password instead of the requested destination.
+     */
+    mustChangePassword?: boolean;
     user: {
         id: number;
         email: string;
@@ -257,6 +264,7 @@ export const authService = {
             success: true,
             data: {
                 accessToken: token,
+                mustChangePassword: account.mustChangePassword,
                 user: {
                     id: account.accountId,
                     email: account.email,
@@ -340,7 +348,7 @@ export const authService = {
             }),
             prisma.account.update({
                 where: { accountId: userId },
-                data: { updatedAt: new Date() },
+                data: { mustChangePassword: false, updatedAt: new Date() },
             }),
         ]);
 

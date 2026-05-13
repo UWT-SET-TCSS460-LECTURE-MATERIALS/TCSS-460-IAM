@@ -65,3 +65,23 @@ export const generateVerificationCode = (): string => {
 export const generateSecureToken = (bytes: number = 32): string => {
     return randomBytes(bytes).toString('hex');
 };
+
+// Excludes 0/O/o/I/l/1 to reduce read-aloud / copy-paste errors.
+const TEMP_PASSWORD_ALPHABET =
+    'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+
+/**
+ * Generate a random temporary password for admin-issued resets.
+ * Uses an unambiguous alphabet (no 0/O/I/l/1) so it's safe to read
+ * aloud or paste from chat.
+ * @param {number} length - Password length (default 12)
+ * @returns {string} A random password
+ */
+export const generateTempPassword = (length: number = 12): string => {
+    const bytes = randomBytes(length);
+    let out = '';
+    for (let i = 0; i < length; i++) {
+        out += TEMP_PASSWORD_ALPHABET[bytes[i] % TEMP_PASSWORD_ALPHABET.length];
+    }
+    return out;
+};
