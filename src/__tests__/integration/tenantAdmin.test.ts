@@ -3,14 +3,61 @@ import jwt from 'jsonwebtoken';
 
 jest.mock('../../lib/prisma', () => {
     const mock: any = {
-        account: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn(), upsert: jest.fn(), count: jest.fn() },
-        accountCredential: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
-        tenant: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-        tenantMembership: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), count: jest.fn() },
-        oAuthClient: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), deleteMany: jest.fn() },
-        oAuthAuthorizationCode: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        oAuthRefreshToken: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        verificationToken: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
+        account: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+            upsert: jest.fn(),
+            count: jest.fn(),
+        },
+        accountCredential: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            updateMany: jest.fn(),
+        },
+        tenant: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        tenantMembership: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            count: jest.fn(),
+        },
+        oAuthClient: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        oAuthAuthorizationCode: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        oAuthRefreshToken: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        verificationToken: {
+            findFirst: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
     };
     mock.$transaction = jest.fn(async (fnOrArray: any) => {
         if (typeof fnOrArray === 'function') return fnOrArray(mock);
@@ -26,22 +73,47 @@ const TEST_SECRET = 'test_secret_key';
 process.env.JWT_SECRET = TEST_SECRET;
 
 const SEED = {
-    owner: { id: 1, email: 'owner@auth2.dev', password: 'OwnerPass123!', role: 5 },
-    admin: { id: 2, email: 'admin@auth2.dev', password: 'AdminPass123!', role: 3 },
+    owner: {
+        id: 1,
+        email: 'owner@auth2.dev',
+        password: 'OwnerPass123!',
+        role: 5,
+    },
+    admin: {
+        id: 2,
+        email: 'admin@auth2.dev',
+        password: 'AdminPass123!',
+        role: 3,
+    },
     user: { id: 3, email: 'user@auth2.dev', password: 'UserPass123!', role: 1 },
     tenant: { id: 'tcss460-sp26', name: 'TCSS 460 Spring 2026' },
     aiTutor: { id: 'ai-tutor', name: 'AI Tutor' },
-    client: { id: 'tcss460-dev-shared', secret: 'dev-secret-tcss460-do-not-use-in-prod-1234567890abcdef1234567890abcdef', redirectUri: 'http://localhost:3000/api/auth/callback/tcss460' },
+    client: {
+        id: 'tcss460-dev-shared',
+        secret: 'dev-secret-tcss460-do-not-use-in-prod-1234567890abcdef1234567890abcdef',
+        redirectUri: 'http://localhost:3000/api/auth/callback/tcss460',
+    },
 };
 
-function makeToken(claims: { id: number; email: string; role: number }, expiresIn = '1h') {
+function makeToken(
+    claims: { id: number; email: string; role: number },
+    expiresIn = '1h'
+) {
     return jwt.sign(claims, TEST_SECRET, { expiresIn } as jwt.SignOptions);
 }
 
 const mockPrisma = prisma as any;
 
-const ownerToken = makeToken({ id: SEED.owner.id, email: SEED.owner.email, role: SEED.owner.role });
-const adminToken = makeToken({ id: SEED.admin.id, email: SEED.admin.email, role: SEED.admin.role });
+const ownerToken = makeToken({
+    id: SEED.owner.id,
+    email: SEED.owner.email,
+    role: SEED.owner.role,
+});
+const adminToken = makeToken({
+    id: SEED.admin.id,
+    email: SEED.admin.email,
+    role: SEED.admin.role,
+});
 
 describe('GET /admin/tenants', () => {
     beforeEach(() => {
@@ -50,8 +122,28 @@ describe('GET /admin/tenants', () => {
 
     it('should list all tenants for owner', async () => {
         (mockPrisma.tenant.findMany as jest.Mock).mockResolvedValue([
-            { tenantId: SEED.tenant.id, tenantName: SEED.tenant.name, isActive: true, autoProvision: true, defaultRole: 1, brandingName: null, brandingColor: null, createdAt: new Date(), _count: { memberships: 5, clients: 2 } },
-            { tenantId: SEED.aiTutor.id, tenantName: SEED.aiTutor.name, isActive: true, autoProvision: true, defaultRole: 1, brandingName: null, brandingColor: null, createdAt: new Date(), _count: { memberships: 1, clients: 1 } },
+            {
+                tenantId: SEED.tenant.id,
+                tenantName: SEED.tenant.name,
+                isActive: true,
+                autoProvision: true,
+                defaultRole: 1,
+                brandingName: null,
+                brandingColor: null,
+                createdAt: new Date(),
+                _count: { memberships: 5, clients: 2 },
+            },
+            {
+                tenantId: SEED.aiTutor.id,
+                tenantName: SEED.aiTutor.name,
+                isActive: true,
+                autoProvision: true,
+                defaultRole: 1,
+                brandingName: null,
+                brandingColor: null,
+                createdAt: new Date(),
+                _count: { memberships: 1, clients: 1 },
+            },
         ]);
 
         const res = await request(app)
@@ -140,7 +232,12 @@ describe('GET /admin/tenants/:tenantId', () => {
             brandingColor: null,
             createdAt: new Date(),
             clients: [
-                { clientId: SEED.client.id, clientName: 'Dev Shared', redirectUris: [SEED.client.redirectUri], createdAt: new Date() },
+                {
+                    clientId: SEED.client.id,
+                    clientName: 'Dev Shared',
+                    redirectUris: [SEED.client.redirectUri],
+                    createdAt: new Date(),
+                },
             ],
             _count: { memberships: 5 },
         });
@@ -242,7 +339,9 @@ describe('POST /admin/tenants/:tenantId/clients', () => {
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
                 clientName: 'Group 1 Consumer App',
-                redirectUris: ['http://localhost:3000/api/auth/callback/tcss460'],
+                redirectUris: [
+                    'http://localhost:3000/api/auth/callback/tcss460',
+                ],
             });
 
         expect(res.status).toBe(201);
@@ -290,12 +389,18 @@ describe('DELETE /admin/tenants/:tenantId/clients/:clientId', () => {
             clientId: SEED.client.id,
             tenantId: SEED.tenant.id,
         });
-        (mockPrisma.oAuthAuthorizationCode.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
-        (mockPrisma.oAuthRefreshToken.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+        (
+            mockPrisma.oAuthAuthorizationCode.deleteMany as jest.Mock
+        ).mockResolvedValue({ count: 0 });
+        (
+            mockPrisma.oAuthRefreshToken.deleteMany as jest.Mock
+        ).mockResolvedValue({ count: 0 });
         (mockPrisma.oAuthClient.delete as jest.Mock).mockResolvedValue({});
 
         const res = await request(app)
-            .delete(`/admin/tenants/${SEED.tenant.id}/clients/${SEED.client.id}`)
+            .delete(
+                `/admin/tenants/${SEED.tenant.id}/clients/${SEED.client.id}`
+            )
             .set('Authorization', `Bearer ${ownerToken}`);
 
         expect(res.status).toBe(200);
@@ -318,7 +423,9 @@ describe('POST /admin/tenants/:tenantId/clients/:clientId/rotate', () => {
         });
 
         const res = await request(app)
-            .post(`/admin/tenants/${SEED.tenant.id}/clients/${SEED.client.id}/rotate`)
+            .post(
+                `/admin/tenants/${SEED.tenant.id}/clients/${SEED.client.id}/rotate`
+            )
             .set('Authorization', `Bearer ${ownerToken}`);
 
         expect(res.status).toBe(200);
@@ -381,7 +488,9 @@ describe('POST /admin/tenants/:tenantId/members', () => {
             accountId: SEED.user.id,
             email: SEED.user.email,
         });
-        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue(null);
+        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue(
+            null
+        );
         (mockPrisma.tenantMembership.create as jest.Mock).mockResolvedValue({
             accountId: SEED.user.id,
             tenantId: SEED.tenant.id,
@@ -434,11 +543,13 @@ describe('PUT /admin/tenants/:tenantId/members/:accountId', () => {
     });
 
     it('should update member role', async () => {
-        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue({
-            accountId: SEED.user.id,
-            tenantId: SEED.tenant.id,
-            role: 1,
-        });
+        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue(
+            {
+                accountId: SEED.user.id,
+                tenantId: SEED.tenant.id,
+                role: 1,
+            }
+        );
         (mockPrisma.tenantMembership.update as jest.Mock).mockResolvedValue({
             accountId: SEED.user.id,
             tenantId: SEED.tenant.id,
@@ -469,11 +580,13 @@ describe('DELETE /admin/tenants/:tenantId/members/:accountId', () => {
     });
 
     it('should remove a member from tenant', async () => {
-        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue({
-            accountId: SEED.user.id,
-            tenantId: SEED.tenant.id,
-            role: 1,
-        });
+        (mockPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue(
+            {
+                accountId: SEED.user.id,
+                tenantId: SEED.tenant.id,
+                role: 1,
+            }
+        );
         (mockPrisma.tenantMembership.delete as jest.Mock).mockResolvedValue({});
 
         const res = await request(app)

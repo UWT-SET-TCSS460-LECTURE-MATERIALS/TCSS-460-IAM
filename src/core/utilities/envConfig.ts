@@ -8,7 +8,11 @@ const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL'];
 const emailRequiredEnvVars = ['EMAIL_USER', 'EMAIL_PASSWORD'];
 
 // Required when v2 OAuth (RS256) is enabled
-const rs256RequiredEnvVars = ['JWT_PRIVATE_KEY_PEM', 'JWT_KEY_ID', 'JWT_ISSUER'];
+const rs256RequiredEnvVars = [
+    'JWT_PRIVATE_KEY_PEM',
+    'JWT_KEY_ID',
+    'JWT_ISSUER',
+];
 
 /**
  * Optional environment variables with defaults

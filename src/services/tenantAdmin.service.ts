@@ -843,13 +843,25 @@ export const tenantAdminService = {
         if (!tenant) {
             return {
                 success: false,
-                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+                error: {
+                    status: 404,
+                    message: 'Tenant not found',
+                    code: ErrorCodes.TENANT_NOT_FOUND,
+                },
             };
         }
 
         const resources = await prisma.apiResource.findMany({
             where: { tenantId },
-            include: { allowedAudiences: { include: { client: { select: { clientId: true, clientName: true } } } } },
+            include: {
+                allowedAudiences: {
+                    include: {
+                        client: {
+                            select: { clientId: true, clientName: true },
+                        },
+                    },
+                },
+            },
             orderBy: { createdAt: 'asc' },
         });
 
@@ -864,18 +876,28 @@ export const tenantAdminService = {
         if (!tenant) {
             return {
                 success: false,
-                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+                error: {
+                    status: 404,
+                    message: 'Tenant not found',
+                    code: ErrorCodes.TENANT_NOT_FOUND,
+                },
             };
         }
 
         // Check uniqueness
         const existing = await prisma.apiResource.findUnique({
-            where: { tenantId_identifier: { tenantId, identifier: data.identifier } },
+            where: {
+                tenantId_identifier: { tenantId, identifier: data.identifier },
+            },
         });
         if (existing) {
             return {
                 success: false,
-                error: { status: 409, message: `API resource "${data.identifier}" already exists in this tenant`, code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 409,
+                    message: `API resource "${data.identifier}" already exists in this tenant`,
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -891,11 +913,17 @@ export const tenantAdminService = {
     },
 
     async deleteApiResource(resourceId: string): Promise<ServiceResult<any>> {
-        const resource = await prisma.apiResource.findUnique({ where: { id: resourceId } });
+        const resource = await prisma.apiResource.findUnique({
+            where: { id: resourceId },
+        });
         if (!resource) {
             return {
                 success: false,
-                error: { status: 404, message: 'API resource not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'API resource not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -908,11 +936,17 @@ export const tenantAdminService = {
     // ===== CLIENT AUDIENCE GRANTS =====
 
     async listClientAudiences(clientId: string): Promise<ServiceResult<any>> {
-        const client = await prisma.oAuthClient.findUnique({ where: { clientId } });
+        const client = await prisma.oAuthClient.findUnique({
+            where: { clientId },
+        });
         if (!client) {
             return {
                 success: false,
-                error: { status: 404, message: 'Client not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'Client not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -930,19 +964,31 @@ export const tenantAdminService = {
         apiResourceId: string
     ): Promise<ServiceResult<any>> {
         // Verify both exist
-        const client = await prisma.oAuthClient.findUnique({ where: { clientId } });
+        const client = await prisma.oAuthClient.findUnique({
+            where: { clientId },
+        });
         if (!client) {
             return {
                 success: false,
-                error: { status: 404, message: 'Client not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'Client not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
-        const resource = await prisma.apiResource.findUnique({ where: { id: apiResourceId } });
+        const resource = await prisma.apiResource.findUnique({
+            where: { id: apiResourceId },
+        });
         if (!resource) {
             return {
                 success: false,
-                error: { status: 404, message: 'API resource not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'API resource not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -953,7 +999,11 @@ export const tenantAdminService = {
         if (existing) {
             return {
                 success: false,
-                error: { status: 409, message: 'Audience already granted to this client', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 409,
+                    message: 'Audience already granted to this client',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -975,7 +1025,11 @@ export const tenantAdminService = {
         if (!existing) {
             return {
                 success: false,
-                error: { status: 404, message: 'Audience grant not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'Audience grant not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -990,34 +1044,55 @@ export const tenantAdminService = {
 
     async mintTestToken(
         tenantId: string,
-        params: { accountId: number; audience: string; role?: number; expiresIn?: string }
+        params: {
+            accountId: number;
+            audience: string;
+            role?: number;
+            expiresIn?: string;
+        }
     ): Promise<ServiceResult<any>> {
         // Verify tenant
         const tenant = await prisma.tenant.findUnique({ where: { tenantId } });
         if (!tenant) {
             return {
                 success: false,
-                error: { status: 404, message: 'Tenant not found', code: ErrorCodes.TENANT_NOT_FOUND },
+                error: {
+                    status: 404,
+                    message: 'Tenant not found',
+                    code: ErrorCodes.TENANT_NOT_FOUND,
+                },
             };
         }
 
         // Verify account exists
-        const account = await prisma.account.findUnique({ where: { accountId: params.accountId } });
+        const account = await prisma.account.findUnique({
+            where: { accountId: params.accountId },
+        });
         if (!account) {
             return {
                 success: false,
-                error: { status: 404, message: 'Account not found', code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: 'Account not found',
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
         // Verify audience exists in this tenant
         const resource = await prisma.apiResource.findUnique({
-            where: { tenantId_identifier: { tenantId, identifier: params.audience } },
+            where: {
+                tenantId_identifier: { tenantId, identifier: params.audience },
+            },
         });
         if (!resource) {
             return {
                 success: false,
-                error: { status: 404, message: `API resource "${params.audience}" not found in tenant`, code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR },
+                error: {
+                    status: 404,
+                    message: `API resource "${params.audience}" not found in tenant`,
+                    code: ErrorCodes.SRVR_DATA_INTEGRITY_ERROR,
+                },
             };
         }
 
@@ -1025,7 +1100,12 @@ export const tenantAdminService = {
         let role = params.role;
         if (role === undefined) {
             const membership = await prisma.tenantMembership.findUnique({
-                where: { accountId_tenantId: { accountId: params.accountId, tenantId } },
+                where: {
+                    accountId_tenantId: {
+                        accountId: params.accountId,
+                        tenantId,
+                    },
+                },
             });
             role = membership?.role || 1;
         }

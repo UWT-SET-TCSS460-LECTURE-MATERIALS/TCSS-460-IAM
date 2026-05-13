@@ -13,7 +13,11 @@ const oauthV2Routes: Router = Router();
 
 // Authorization endpoint — serves login page and handles form submission
 oauthV2Routes.get('/authorize', OAuthV2Controller.authorize);
-oauthV2Routes.post('/authorize', authLimiter, OAuthV2Controller.authorizeSubmit);
+oauthV2Routes.post(
+    '/authorize',
+    authLimiter,
+    OAuthV2Controller.authorizeSubmit
+);
 
 // Registration endpoint — serves register page and handles form submission
 oauthV2Routes.get('/authorize/register', OAuthV2Controller.registerPage);

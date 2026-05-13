@@ -10,7 +10,10 @@ export class OAuthV2Controller {
     /**
      * GET /v2/oauth/authorize — show login page with audience validation
      */
-    static async authorize(request: Request, response: Response): Promise<void> {
+    static async authorize(
+        request: Request,
+        response: Response
+    ): Promise<void> {
         const {
             client_id,
             redirect_uri,
@@ -89,7 +92,10 @@ export class OAuthV2Controller {
     /**
      * POST /v2/oauth/authorize — handle login form submission
      */
-    static async authorizeSubmit(request: Request, response: Response): Promise<void> {
+    static async authorizeSubmit(
+        request: Request,
+        response: Response
+    ): Promise<void> {
         const {
             email,
             password,
@@ -103,7 +109,10 @@ export class OAuthV2Controller {
         } = request.body;
 
         // Re-validate client
-        const clientResult = await oauthV2Service.validateClient(client_id, redirect_uri);
+        const clientResult = await oauthV2Service.validateClient(
+            client_id,
+            redirect_uri
+        );
         if (!clientResult.success) {
             response.status(clientResult.error!.status).render('oauth/error', {
                 error: clientResult.error!.error_description,
@@ -150,7 +159,10 @@ export class OAuthV2Controller {
         }
 
         // Authenticate user
-        const authResult = await oauthV2Service.authenticateForOAuth(email, password);
+        const authResult = await oauthV2Service.authenticateForOAuth(
+            email,
+            password
+        );
         if (!authResult.success) {
             renderError(authResult.error!.error_description);
             return;
@@ -188,7 +200,10 @@ export class OAuthV2Controller {
     /**
      * GET /v2/oauth/authorize/register — show registration page
      */
-    static async registerPage(request: Request, response: Response): Promise<void> {
+    static async registerPage(
+        request: Request,
+        response: Response
+    ): Promise<void> {
         const {
             client_id,
             redirect_uri,
@@ -237,7 +252,10 @@ export class OAuthV2Controller {
     /**
      * POST /v2/oauth/authorize/register — handle registration form
      */
-    static async registerSubmit(request: Request, response: Response): Promise<void> {
+    static async registerSubmit(
+        request: Request,
+        response: Response
+    ): Promise<void> {
         const {
             firstname,
             lastname,
@@ -255,7 +273,10 @@ export class OAuthV2Controller {
             code_challenge_method,
         } = request.body;
 
-        const clientResult = await oauthV2Service.validateClient(client_id, redirect_uri);
+        const clientResult = await oauthV2Service.validateClient(
+            client_id,
+            redirect_uri
+        );
         if (!clientResult.success) {
             response.status(clientResult.error!.status).render('oauth/error', {
                 error: clientResult.error!.error_description,
@@ -288,7 +309,15 @@ export class OAuthV2Controller {
             });
         };
 
-        if (!firstname || !lastname || !email || !username || !phone || !password || !confirmPassword) {
+        if (
+            !firstname ||
+            !lastname ||
+            !email ||
+            !username ||
+            !phone ||
+            !password ||
+            !confirmPassword
+        ) {
             renderError('All fields are required');
             return;
         }
@@ -361,7 +390,13 @@ export class OAuthV2Controller {
 
         try {
             if (grant_type === 'authorization_code') {
-                const { code, redirect_uri, client_id, client_secret, code_verifier } = request.body;
+                const {
+                    code,
+                    redirect_uri,
+                    client_id,
+                    client_secret,
+                    code_verifier,
+                } = request.body;
 
                 const result = await oauthV2Service.exchangeAuthorizationCode({
                     code,
@@ -381,7 +416,8 @@ export class OAuthV2Controller {
 
                 response.json(result.data);
             } else if (grant_type === 'refresh_token') {
-                const { refresh_token, client_id, client_secret } = request.body;
+                const { refresh_token, client_id, client_secret } =
+                    request.body;
 
                 const result = await oauthV2Service.refreshTokenGrant({
                     refreshToken: refresh_token,
@@ -401,7 +437,8 @@ export class OAuthV2Controller {
             } else {
                 response.status(400).json({
                     error: 'unsupported_grant_type',
-                    error_description: 'Only authorization_code and refresh_token grant types are supported',
+                    error_description:
+                        'Only authorization_code and refresh_token grant types are supported',
                 });
             }
         } catch (error) {
@@ -416,7 +453,10 @@ export class OAuthV2Controller {
     /**
      * GET /v2/oauth/userinfo — return user profile from RS256 access token
      */
-    static async userinfo(request: JwtRequest, response: Response): Promise<void> {
+    static async userinfo(
+        request: JwtRequest,
+        response: Response
+    ): Promise<void> {
         if (!request.claims) {
             response.status(401).json({
                 error: 'invalid_token',
@@ -431,7 +471,10 @@ export class OAuthV2Controller {
             const accountId = claims.id || parseInt(claims.sub, 10);
             const tenantId = claims.tenant;
 
-            const result = await oauthV2Service.getUserInfo(accountId, tenantId);
+            const result = await oauthV2Service.getUserInfo(
+                accountId,
+                tenantId
+            );
 
             if (!result.success) {
                 response.status(result.error!.status).json({

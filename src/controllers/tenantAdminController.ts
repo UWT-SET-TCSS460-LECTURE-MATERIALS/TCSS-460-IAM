@@ -752,13 +752,23 @@ export class TenantAdminController {
         try {
             const result = await tenantAdminService.listApiResources(tenantId);
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, result.data, 'API resources retrieved');
         } catch (error) {
             console.error('Error listing API resources:', error);
-            sendError(response, 500, 'Failed to list API resources', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to list API resources',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -774,23 +784,41 @@ export class TenantAdminController {
         const { identifier, displayName } = request.body;
 
         if (!identifier || !displayName) {
-            sendError(response, 400, 'identifier and displayName are required', ErrorCodes.VALD_MISSING_FIELDS);
+            sendError(
+                response,
+                400,
+                'identifier and displayName are required',
+                ErrorCodes.VALD_MISSING_FIELDS
+            );
             return;
         }
 
         try {
-            const result = await tenantAdminService.createApiResource(tenantId, {
-                identifier,
-                displayName,
-            });
+            const result = await tenantAdminService.createApiResource(
+                tenantId,
+                {
+                    identifier,
+                    displayName,
+                }
+            );
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, result.data, 'API resource created', 201);
         } catch (error) {
             console.error('Error creating API resource:', error);
-            sendError(response, 500, 'Failed to create API resource', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to create API resource',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -805,15 +833,26 @@ export class TenantAdminController {
         const { resourceId } = request.params;
 
         try {
-            const result = await tenantAdminService.deleteApiResource(resourceId);
+            const result =
+                await tenantAdminService.deleteApiResource(resourceId);
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, null, 'API resource deleted');
         } catch (error) {
             console.error('Error deleting API resource:', error);
-            sendError(response, 500, 'Failed to delete API resource', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to delete API resource',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -830,15 +869,26 @@ export class TenantAdminController {
         const { clientId } = request.params;
 
         try {
-            const result = await tenantAdminService.listClientAudiences(clientId);
+            const result =
+                await tenantAdminService.listClientAudiences(clientId);
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, result.data, 'Client audiences retrieved');
         } catch (error) {
             console.error('Error listing client audiences:', error);
-            sendError(response, 500, 'Failed to list client audiences', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to list client audiences',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -854,20 +904,38 @@ export class TenantAdminController {
         const { apiResourceId } = request.body;
 
         if (!apiResourceId) {
-            sendError(response, 400, 'apiResourceId is required', ErrorCodes.VALD_MISSING_FIELDS);
+            sendError(
+                response,
+                400,
+                'apiResourceId is required',
+                ErrorCodes.VALD_MISSING_FIELDS
+            );
             return;
         }
 
         try {
-            const result = await tenantAdminService.grantClientAudience(clientId, apiResourceId);
+            const result = await tenantAdminService.grantClientAudience(
+                clientId,
+                apiResourceId
+            );
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, result.data, 'Audience granted', 201);
         } catch (error) {
             console.error('Error granting audience:', error);
-            sendError(response, 500, 'Failed to grant audience', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to grant audience',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -882,15 +950,28 @@ export class TenantAdminController {
         const { clientId, resourceId } = request.params;
 
         try {
-            const result = await tenantAdminService.revokeClientAudience(clientId, resourceId);
+            const result = await tenantAdminService.revokeClientAudience(
+                clientId,
+                resourceId
+            );
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, null, 'Audience revoked');
         } catch (error) {
             console.error('Error revoking audience:', error);
-            sendError(response, 500, 'Failed to revoke audience', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to revoke audience',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 
@@ -908,7 +989,12 @@ export class TenantAdminController {
         const { accountId, audience, role, expiresIn } = request.body;
 
         if (!accountId || !audience) {
-            sendError(response, 400, 'accountId and audience are required', ErrorCodes.VALD_MISSING_FIELDS);
+            sendError(
+                response,
+                400,
+                'accountId and audience are required',
+                ErrorCodes.VALD_MISSING_FIELDS
+            );
             return;
         }
 
@@ -920,13 +1006,23 @@ export class TenantAdminController {
                 expiresIn: expiresIn || '1h',
             });
             if (!result.success) {
-                sendError(response, result.error!.status, result.error!.message, result.error!.code);
+                sendError(
+                    response,
+                    result.error!.status,
+                    result.error!.message,
+                    result.error!.code
+                );
                 return;
             }
             sendSuccess(response, result.data, 'Test token minted');
         } catch (error) {
             console.error('Error minting test token:', error);
-            sendError(response, 500, 'Failed to mint token', ErrorCodes.SRVR_DATABASE_ERROR);
+            sendError(
+                response,
+                500,
+                'Failed to mint token',
+                ErrorCodes.SRVR_DATABASE_ERROR
+            );
         }
     }
 }

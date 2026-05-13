@@ -121,7 +121,7 @@ describe('envConfig', () => {
             validateEnv();
 
             // Check that defaults were set
-            expect(process.env.PORT).toBe('8000');
+            expect(process.env.PORT).toBe('13000');
             expect(process.env.NODE_ENV).toBe('development');
             expect(process.env.EMAIL_SERVICE).toBe('gmail');
             expect(process.env.EMAIL_FROM).toBe(
@@ -129,7 +129,7 @@ describe('envConfig', () => {
             );
             expect(process.env.SEND_EMAILS).toBe('false');
             expect(process.env.SEND_SMS_EMAILS).toBe('false');
-            expect(process.env.APP_BASE_URL).toBe('http://localhost:8000');
+            expect(process.env.APP_BASE_URL).toBe('http://localhost:13000');
             expect(process.env.DEFAULT_SMS_CARRIER).toBe('att');
             expect(process.env.JWT_EXPIRY).toBe('14d');
 
@@ -178,7 +178,7 @@ describe('envConfig', () => {
             validateEnv();
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                'ℹ️ Using default value for PORT: 8000'
+                'ℹ️ Using default value for PORT: 13000'
             );
             expect(consoleSpy).toHaveBeenCalledWith(
                 'ℹ️ Using default value for NODE_ENV: development'
@@ -354,7 +354,7 @@ describe('envConfig', () => {
             expect(isTest()).toBe(false);
 
             // Test getEnvVar with defaults that were set
-            expect(getEnvVar('PORT')).toBe('8000');
+            expect(getEnvVar('PORT')).toBe('13000');
             expect(getEnvVar('EMAIL_SERVICE')).toBe('gmail');
 
             consoleSpy.mockRestore();

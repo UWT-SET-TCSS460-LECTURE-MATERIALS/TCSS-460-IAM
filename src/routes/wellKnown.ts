@@ -2,7 +2,10 @@
 // OpenID Connect discovery and JWKS endpoints
 
 import { Router, Request, Response } from 'express';
-import { getJWKSDocument, getOpenIDConfiguration } from '../core/utilities/rsaUtils';
+import {
+    getJWKSDocument,
+    getOpenIDConfiguration,
+} from '../core/utilities/rsaUtils';
 
 const wellKnownRoutes: Router = Router();
 
