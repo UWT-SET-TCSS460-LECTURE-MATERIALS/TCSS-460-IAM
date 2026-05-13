@@ -115,7 +115,16 @@ export class AdminUiController {
         request: JwtRequest,
         response: Response
     ): Promise<void> {
-        const { firstname, lastname, email, password, username, phone, role, status } = request.body;
+        const {
+            firstname,
+            lastname,
+            email,
+            password,
+            username,
+            phone,
+            role,
+            status,
+        } = request.body;
 
         try {
             const result = await authService.register({
@@ -900,10 +909,13 @@ export class AdminUiController {
         }
 
         try {
-            const result = await tenantAdminService.createApiResource(tenantId, {
-                identifier: identifier.trim(),
-                displayName: displayName.trim(),
-            });
+            const result = await tenantAdminService.createApiResource(
+                tenantId,
+                {
+                    identifier: identifier.trim(),
+                    displayName: displayName.trim(),
+                }
+            );
             if (!result.success) {
                 response.redirect(
                     `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
@@ -932,7 +944,8 @@ export class AdminUiController {
         const { id: tenantId, resourceId } = request.params;
 
         try {
-            const result = await tenantAdminService.deleteApiResource(resourceId);
+            const result =
+                await tenantAdminService.deleteApiResource(resourceId);
             if (!result.success) {
                 response.redirect(
                     `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
@@ -1059,11 +1072,14 @@ export class AdminUiController {
         }
 
         try {
-            const mintResult = await tenantAdminService.mintTestToken(tenantId, {
-                accountId: parsedAccountId,
-                audience,
-                expiresIn: expiresIn || '1h',
-            });
+            const mintResult = await tenantAdminService.mintTestToken(
+                tenantId,
+                {
+                    accountId: parsedAccountId,
+                    audience,
+                    expiresIn: expiresIn || '1h',
+                }
+            );
 
             const loaded = await AdminUiController.loadClientContext(
                 tenantId,
@@ -1102,8 +1118,12 @@ export class AdminUiController {
     }
 
     /**
-     * Reset member password (owner only)
+     * Issue a temporary password for a tenant member (owner only).
      * POST /admin/ui/tenants/:id/members/:accountId/reset-password
+     *
+     * Renders a one-time view page containing the plaintext temp password.
+     * The password is never put in a URL (avoids browser history + access
+     * logs). Admin must copy it before navigating away.
      */
     static async resetMemberPassword(
         request: JwtRequest,
@@ -1111,7 +1131,6 @@ export class AdminUiController {
     ): Promise<void> {
         const tenantId = request.params.id;
         const accountId = parseInt(request.params.accountId);
-        const { password } = request.body;
 
         if (isNaN(accountId)) {
             response.redirect(
@@ -1120,31 +1139,24 @@ export class AdminUiController {
             return;
         }
 
-        if (!password || password.length < 8) {
-            response.redirect(
-                `/admin/ui/tenants/${tenantId}?error=Password+must+be+at+least+8+characters`
-            );
-            return;
-        }
-
         try {
-            const result = await adminService.resetUserPassword(
-                accountId,
-                password
-            );
+            const result = await adminService.issueTempPassword(accountId);
             if (!result.success) {
                 response.redirect(
                     `/admin/ui/tenants/${tenantId}?error=${encodeURIComponent(result.error!.message)}`
                 );
                 return;
             }
-            response.redirect(
-                `/admin/ui/tenants/${tenantId}?success=Password+reset+successfully`
-            );
+            response.render('admin/temp-password-issued', {
+                title: 'Temporary Password Issued',
+                tenantId,
+                email: result.data!.email,
+                tempPassword: result.data!.tempPassword,
+            });
         } catch (error) {
-            console.error('Admin UI reset password error:', error);
+            console.error('Admin UI issue temp password error:', error);
             response.redirect(
-                `/admin/ui/tenants/${tenantId}?error=Failed+to+reset+password`
+                `/admin/ui/tenants/${tenantId}?error=Failed+to+issue+temporary+password`
             );
         }
     }

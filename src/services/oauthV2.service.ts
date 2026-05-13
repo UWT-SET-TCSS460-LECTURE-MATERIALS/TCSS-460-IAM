@@ -4,7 +4,10 @@
 import crypto from 'crypto';
 import { prisma } from '../lib/prisma';
 import { verifyPassword } from '../core/utilities/credentialingUtils';
-import { generateAuthorizationCode, generateRefreshToken } from '../core/utilities/tokenUtils';
+import {
+    generateAuthorizationCode,
+    generateRefreshToken,
+} from '../core/utilities/tokenUtils';
 import { signRS256 } from '../core/utilities/rsaUtils';
 import { RoleName, UserRole } from '../core/models';
 
@@ -86,7 +89,12 @@ export const oauthV2Service = {
     ): Promise<OAuthResult<{ apiResource: any }>> {
         // Find the API resource by identifier within the tenant
         const apiResource = await prisma.apiResource.findUnique({
-            where: { tenantId_identifier: { tenantId, identifier: audienceIdentifier } },
+            where: {
+                tenantId_identifier: {
+                    tenantId,
+                    identifier: audienceIdentifier,
+                },
+            },
         });
 
         if (!apiResource) {
@@ -103,7 +111,10 @@ export const oauthV2Service = {
         // Check the client has a ClientAllowedAudience row for this resource
         const allowed = await prisma.clientAllowedAudience.findUnique({
             where: {
-                clientId_apiResourceId: { clientId, apiResourceId: apiResource.id },
+                clientId_apiResourceId: {
+                    clientId,
+                    apiResourceId: apiResource.id,
+                },
             },
         });
 
@@ -172,6 +183,21 @@ export const oauthV2Service = {
             };
         }
 
+        // Block OAuth code issuance for accounts with a temp password.
+        // The user must change their password via /account/change-password
+        // before they can complete an OAuth flow.
+        if (account.mustChangePassword) {
+            return {
+                success: false,
+                error: {
+                    error: 'access_denied',
+                    error_description:
+                        'Your password must be changed before signing in. Open the Auth² account portal at /account/login to set a new password, then return here.',
+                    status: 403,
+                },
+            };
+        }
+
         return { success: true, data: { accountId: account.accountId } };
     },
 
@@ -196,7 +222,8 @@ export const oauthV2Service = {
                     success: false,
                     error: {
                         error: 'access_denied',
-                        error_description: 'User is not a member of this tenant',
+                        error_description:
+                            'User is not a member of this tenant',
                         status: 403,
                     },
                 };
@@ -271,7 +298,10 @@ export const oauthV2Service = {
             include: { tenant: true },
         });
 
-        if (!client || !timingSafeCompare(client.clientSecret, params.clientSecret)) {
+        if (
+            !client ||
+            !timingSafeCompare(client.clientSecret, params.clientSecret)
+        ) {
             return {
                 success: false,
                 error: {
@@ -291,35 +321,55 @@ export const oauthV2Service = {
         if (!authCode) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Invalid authorization code', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Invalid authorization code',
+                    status: 400,
+                },
             };
         }
 
         if (authCode.used) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Authorization code already used', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Authorization code already used',
+                    status: 400,
+                },
             };
         }
 
         if (new Date() > authCode.expiresAt) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Authorization code expired', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Authorization code expired',
+                    status: 400,
+                },
             };
         }
 
         if (authCode.clientId !== params.clientId) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Code was not issued to this client', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Code was not issued to this client',
+                    status: 400,
+                },
             };
         }
 
         if (authCode.redirectUri !== params.redirectUri) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'redirect_uri mismatch', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'redirect_uri mismatch',
+                    status: 400,
+                },
             };
         }
 
@@ -328,19 +378,30 @@ export const oauthV2Service = {
             if (!params.codeVerifier) {
                 return {
                     success: false,
-                    error: { error: 'invalid_grant', error_description: 'code_verifier is required', status: 400 },
+                    error: {
+                        error: 'invalid_grant',
+                        error_description: 'code_verifier is required',
+                        status: 400,
+                    },
                 };
             }
 
             const computedChallenge =
                 authCode.codeChallengeMethod === 'S256'
-                    ? crypto.createHash('sha256').update(params.codeVerifier).digest('base64url')
+                    ? crypto
+                          .createHash('sha256')
+                          .update(params.codeVerifier)
+                          .digest('base64url')
                     : params.codeVerifier;
 
             if (computedChallenge !== authCode.codeChallenge) {
                 return {
                     success: false,
-                    error: { error: 'invalid_grant', error_description: 'PKCE verification failed', status: 400 },
+                    error: {
+                        error: 'invalid_grant',
+                        error_description: 'PKCE verification failed',
+                        status: 400,
+                    },
                 };
             }
         }
@@ -367,7 +428,11 @@ export const oauthV2Service = {
         if (!audience) {
             return {
                 success: false,
-                error: { error: 'server_error', error_description: 'Authorization code missing audience', status: 500 },
+                error: {
+                    error: 'server_error',
+                    error_description: 'Authorization code missing audience',
+                    status: 500,
+                },
             };
         }
 
@@ -401,7 +466,9 @@ export const oauthV2Service = {
 
         // Generate refresh token (stores audience for future refreshes)
         const refreshToken = generateRefreshToken();
-        const refreshExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        const refreshExpiresAt = new Date(
+            Date.now() + 14 * 24 * 60 * 60 * 1000
+        );
 
         await prisma.oAuthRefreshToken.create({
             data: {
@@ -445,10 +512,17 @@ export const oauthV2Service = {
             where: { clientId: params.clientId },
         });
 
-        if (!client || !timingSafeCompare(client.clientSecret, params.clientSecret)) {
+        if (
+            !client ||
+            !timingSafeCompare(client.clientSecret, params.clientSecret)
+        ) {
             return {
                 success: false,
-                error: { error: 'invalid_client', error_description: 'Invalid client credentials', status: 401 },
+                error: {
+                    error: 'invalid_client',
+                    error_description: 'Invalid client credentials',
+                    status: 401,
+                },
             };
         }
 
@@ -460,28 +534,44 @@ export const oauthV2Service = {
         if (!storedToken) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Invalid refresh token', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Invalid refresh token',
+                    status: 400,
+                },
             };
         }
 
         if (storedToken.revoked) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Refresh token has been revoked', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Refresh token has been revoked',
+                    status: 400,
+                },
             };
         }
 
         if (new Date() > storedToken.expiresAt) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Refresh token expired', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Refresh token expired',
+                    status: 400,
+                },
             };
         }
 
         if (storedToken.clientId !== params.clientId) {
             return {
                 success: false,
-                error: { error: 'invalid_grant', error_description: 'Token was not issued to this client', status: 400 },
+                error: {
+                    error: 'invalid_grant',
+                    error_description: 'Token was not issued to this client',
+                    status: 400,
+                },
             };
         }
 
@@ -507,7 +597,11 @@ export const oauthV2Service = {
         if (!audience) {
             return {
                 success: false,
-                error: { error: 'server_error', error_description: 'Refresh token missing audience', status: 500 },
+                error: {
+                    error: 'server_error',
+                    error_description: 'Refresh token missing audience',
+                    status: 500,
+                },
             };
         }
 
@@ -523,7 +617,9 @@ export const oauthV2Service = {
 
         // Issue new refresh token
         const newRefreshToken = generateRefreshToken();
-        const refreshExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        const refreshExpiresAt = new Date(
+            Date.now() + 14 * 24 * 60 * 60 * 1000
+        );
 
         await prisma.oAuthRefreshToken.create({
             data: {
@@ -575,7 +671,11 @@ export const oauthV2Service = {
         if (!account) {
             return {
                 success: false,
-                error: { error: 'invalid_token', error_description: 'User not found', status: 401 },
+                error: {
+                    error: 'invalid_token',
+                    error_description: 'User not found',
+                    status: 401,
+                },
             };
         }
 

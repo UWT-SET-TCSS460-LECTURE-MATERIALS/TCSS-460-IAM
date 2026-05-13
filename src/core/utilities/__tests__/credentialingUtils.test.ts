@@ -5,6 +5,7 @@ import {
     verifyPassword,
     generateVerificationCode,
     generateSecureToken,
+    generateTempPassword,
 } from '../credentialingUtils';
 
 describe('credentialingUtils', () => {
@@ -329,6 +330,40 @@ describe('credentialingUtils', () => {
 
             // Ratio should be reasonable (not perfect due to randomness)
             expect(ratio).toBeLessThan(3);
+        });
+    });
+
+    describe('generateTempPassword', () => {
+        it('should generate a 12-character password by default', () => {
+            const pw = generateTempPassword();
+            expect(pw).toHaveLength(12);
+        });
+
+        it('should respect a custom length', () => {
+            expect(generateTempPassword(8)).toHaveLength(8);
+            expect(generateTempPassword(20)).toHaveLength(20);
+        });
+
+        it('should never include ambiguous characters (0/O/I/l/1)', () => {
+            for (let i = 0; i < 200; i++) {
+                const pw = generateTempPassword();
+                expect(pw).not.toMatch(/[0OIl1]/);
+            }
+        });
+
+        it('should only use the unambiguous alphabet', () => {
+            // Excludes 0, O, I, l, 1 — keeps uppercase L and lowercase i
+            // (lowercase i has a dot; we accept the small overlap risk).
+            const allowed = /^[A-HJ-NP-Za-km-np-z2-9]+$/;
+            for (let i = 0; i < 50; i++) {
+                expect(generateTempPassword(16)).toMatch(allowed);
+            }
+        });
+
+        it('should generate unique passwords (statistical)', () => {
+            const set = new Set<string>();
+            for (let i = 0; i < 100; i++) set.add(generateTempPassword());
+            expect(set.size).toBe(100);
         });
     });
 

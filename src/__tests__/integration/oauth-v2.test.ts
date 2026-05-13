@@ -7,15 +7,62 @@ import crypto from 'crypto';
 
 jest.mock('../../lib/prisma', () => {
     const mock: any = {
-        account: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-        accountCredential: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-        tenant: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-        tenantMembership: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn(), count: jest.fn() },
-        oAuthClient: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
-        oAuthAuthorizationCode: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        oAuthRefreshToken: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
-        apiResource: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), delete: jest.fn() },
-        clientAllowedAudience: { findUnique: jest.fn(), findMany: jest.fn(), create: jest.fn(), delete: jest.fn() },
+        account: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        accountCredential: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        tenant: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+        },
+        tenantMembership: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            count: jest.fn(),
+        },
+        oAuthClient: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        },
+        oAuthAuthorizationCode: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        oAuthRefreshToken: {
+            findUnique: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            deleteMany: jest.fn(),
+        },
+        apiResource: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            delete: jest.fn(),
+        },
+        clientAllowedAudience: {
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            delete: jest.fn(),
+        },
     };
     mock.$transaction = jest.fn(async (fnOrArray: any) => {
         if (typeof fnOrArray === 'function') return fnOrArray(mock);
@@ -71,7 +118,10 @@ const TEST_ACCOUNT = {
 };
 
 function hashPassword(password: string, salt: string): string {
-    return crypto.createHash('sha256').update(password + salt).digest('hex');
+    return crypto
+        .createHash('sha256')
+        .update(password + salt)
+        .digest('hex');
 }
 
 describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
@@ -106,15 +156,21 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
 
     describe('GET /.well-known/openid-configuration', () => {
         it('should return a valid OpenID discovery document', async () => {
-            const res = await request(app).get('/.well-known/openid-configuration');
+            const res = await request(app).get(
+                '/.well-known/openid-configuration'
+            );
 
             expect(res.status).toBe(200);
             expect(res.body.issuer).toBe('http://localhost:13000');
-            expect(res.body.authorization_endpoint).toContain('/v2/oauth/authorize');
+            expect(res.body.authorization_endpoint).toContain(
+                '/v2/oauth/authorize'
+            );
             expect(res.body.token_endpoint).toContain('/v2/oauth/token');
             expect(res.body.userinfo_endpoint).toContain('/v2/oauth/userinfo');
             expect(res.body.jwks_uri).toContain('/.well-known/jwks.json');
-            expect(res.body.id_token_signing_alg_values_supported).toContain('RS256');
+            expect(res.body.id_token_signing_alg_values_supported).toContain(
+                'RS256'
+            );
             expect(res.body.scopes_supported).toContain('openid');
         });
     });
@@ -123,76 +179,86 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
 
     describe('GET /v2/oauth/authorize', () => {
         it('should reject requests without audience parameter', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
 
-            const res = await request(app)
-                .get('/v2/oauth/authorize')
-                .query({
-                    client_id: 'group-2-consumer',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
-                    response_type: 'code',
-                    state: 'abc123',
-                });
+            const res = await request(app).get('/v2/oauth/authorize').query({
+                client_id: 'group-2-consumer',
+                redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                response_type: 'code',
+                state: 'abc123',
+            });
 
             expect(res.status).toBe(400);
             expect(res.text).toContain('Missing required parameter: audience');
         });
 
         it('should reject unknown audience', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.apiResource.findUnique as jest.Mock).mockResolvedValue(null);
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.apiResource.findUnique as jest.Mock
+            ).mockResolvedValue(null);
 
-            const res = await request(app)
-                .get('/v2/oauth/authorize')
-                .query({
-                    client_id: 'group-2-consumer',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
-                    response_type: 'code',
-                    state: 'abc123',
-                    audience: 'nonexistent-api',
-                });
+            const res = await request(app).get('/v2/oauth/authorize').query({
+                client_id: 'group-2-consumer',
+                redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                response_type: 'code',
+                state: 'abc123',
+                audience: 'nonexistent-api',
+            });
 
             expect(res.status).toBe(400);
             expect(res.text).toContain('Unknown audience');
         });
 
         it('should reject client not authorized for audience', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.apiResource.findUnique as jest.Mock).mockResolvedValueOnce(TEST_API_RESOURCE);
-            (mockedPrisma.clientAllowedAudience.findUnique as jest.Mock).mockResolvedValue(null);
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.apiResource.findUnique as jest.Mock
+            ).mockResolvedValueOnce(TEST_API_RESOURCE);
+            (
+                mockedPrisma.clientAllowedAudience.findUnique as jest.Mock
+            ).mockResolvedValue(null);
 
-            const res = await request(app)
-                .get('/v2/oauth/authorize')
-                .query({
-                    client_id: 'group-2-consumer',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
-                    response_type: 'code',
-                    state: 'abc123',
-                    audience: 'group-1-api',
-                });
+            const res = await request(app).get('/v2/oauth/authorize').query({
+                client_id: 'group-2-consumer',
+                redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                response_type: 'code',
+                state: 'abc123',
+                audience: 'group-1-api',
+            });
 
             expect(res.status).toBe(403);
             expect(res.text).toContain('not authorized for audience');
         });
 
         it('should render login page when client is authorized for audience', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.apiResource.findUnique as jest.Mock).mockResolvedValueOnce(TEST_API_RESOURCE);
-            (mockedPrisma.clientAllowedAudience.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.apiResource.findUnique as jest.Mock
+            ).mockResolvedValueOnce(TEST_API_RESOURCE);
+            (
+                mockedPrisma.clientAllowedAudience.findUnique as jest.Mock
+            ).mockResolvedValue({
                 clientId: 'group-2-consumer',
                 apiResourceId: 'resource-id-1',
             });
 
-            const res = await request(app)
-                .get('/v2/oauth/authorize')
-                .query({
-                    client_id: 'group-2-consumer',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
-                    response_type: 'code',
-                    state: 'abc123',
-                    audience: 'group-1-api',
-                    scope: 'openid profile email',
-                });
+            const res = await request(app).get('/v2/oauth/authorize').query({
+                client_id: 'group-2-consumer',
+                redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                response_type: 'code',
+                state: 'abc123',
+                audience: 'group-1-api',
+                scope: 'openid profile email',
+            });
 
             expect(res.status).toBe(200);
             expect(res.text).toContain('Sign in');
@@ -205,6 +271,88 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
         });
     });
 
+    describe('POST /v2/oauth/authorize — temp password gate', () => {
+        const baseAuthorizeBody = {
+            client_id: 'group-2-consumer',
+            redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+            state: 'abc123',
+            audience: 'group-1-api',
+            scope: 'openid profile email',
+            email: 'alice@uw.edu',
+            password: 'temp-pw-123',
+        };
+
+        function mockAudienceOk() {
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.apiResource.findUnique as jest.Mock
+            ).mockResolvedValueOnce(TEST_API_RESOURCE);
+            (
+                mockedPrisma.clientAllowedAudience.findUnique as jest.Mock
+            ).mockResolvedValue({
+                clientId: 'group-2-consumer',
+                apiResourceId: 'resource-id-1',
+            });
+        }
+
+        it('should refuse to issue an authorization code when mustChangePassword is true', async () => {
+            mockAudienceOk();
+            const salt = 'test-salt';
+            const hash = hashPassword('temp-pw-123', salt);
+            (mockedPrisma.account.findUnique as jest.Mock).mockResolvedValue({
+                ...TEST_ACCOUNT,
+                mustChangePassword: true,
+                credential: { saltedHash: hash, salt },
+            });
+
+            const res = await request(app)
+                .post('/v2/oauth/authorize')
+                .type('form')
+                .send(baseAuthorizeBody);
+
+            // Re-renders the login form with an error; never redirects with code
+            expect(res.status).toBe(200);
+            expect(res.text).toMatch(/password must be changed/i);
+            expect(res.headers.location).toBeUndefined();
+            // Authorization code must NOT have been created
+            expect(
+                mockedPrisma.oAuthAuthorizationCode.create
+            ).not.toHaveBeenCalled();
+        });
+
+        it('should issue an authorization code when mustChangePassword is false', async () => {
+            mockAudienceOk();
+            const salt = 'test-salt';
+            const hash = hashPassword('temp-pw-123', salt);
+            (mockedPrisma.account.findUnique as jest.Mock).mockResolvedValue({
+                ...TEST_ACCOUNT,
+                mustChangePassword: false,
+                credential: { saltedHash: hash, salt },
+            });
+            (
+                mockedPrisma.tenantMembership.findUnique as jest.Mock
+            ).mockResolvedValue({
+                accountId: 42,
+                tenantId: 'tcss460-sp26',
+                role: 1,
+            });
+            (
+                mockedPrisma.oAuthAuthorizationCode.create as jest.Mock
+            ).mockResolvedValue({});
+
+            const res = await request(app)
+                .post('/v2/oauth/authorize')
+                .type('form')
+                .send(baseAuthorizeBody);
+
+            // Successful flow redirects back to client with ?code=
+            expect(res.status).toBe(302);
+            expect(res.headers.location).toContain('code=');
+        });
+    });
+
     // ===== TOKEN ENDPOINT =====
 
     describe('POST /v2/oauth/token', () => {
@@ -212,8 +360,12 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
             const salt = 'test-salt';
             const hash = hashPassword('password123', salt);
 
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock
+            ).mockResolvedValue({
                 code: 'test-auth-code',
                 clientId: 'group-2-consumer',
                 accountId: 42,
@@ -224,15 +376,24 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 codeChallengeMethod: null,
                 expiresAt: new Date(Date.now() + 600000),
                 used: false,
-                account: { ...TEST_ACCOUNT, credential: { saltedHash: hash, salt } },
+                account: {
+                    ...TEST_ACCOUNT,
+                    credential: { saltedHash: hash, salt },
+                },
             });
-            (mockedPrisma.oAuthAuthorizationCode.update as jest.Mock).mockResolvedValue({});
-            (mockedPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthAuthorizationCode.update as jest.Mock
+            ).mockResolvedValue({});
+            (
+                mockedPrisma.tenantMembership.findUnique as jest.Mock
+            ).mockResolvedValue({
                 accountId: 42,
                 tenantId: 'tcss460-sp26',
                 role: 1,
             });
-            (mockedPrisma.oAuthRefreshToken.create as jest.Mock).mockResolvedValue({});
+            (
+                mockedPrisma.oAuthRefreshToken.create as jest.Mock
+            ).mockResolvedValue({});
 
             const res = await request(app)
                 .post('/v2/oauth/token')
@@ -240,7 +401,8 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 .send({
                     grant_type: 'authorization_code',
                     code: 'test-auth-code',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                    redirect_uri:
+                        'http://localhost:3000/api/auth/callback/tcss460',
                     client_id: 'group-2-consumer',
                     client_secret: 'test-secret-123',
                 });
@@ -253,7 +415,9 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
             expect(res.body.refresh_token).toBeDefined();
 
             // Verify access_token is RS256 with correct aud
-            const decoded = jwt.decode(res.body.access_token, { complete: true });
+            const decoded = jwt.decode(res.body.access_token, {
+                complete: true,
+            });
             expect(decoded!.header.alg).toBe('RS256');
             expect(decoded!.header.kid).toBe('test-key-001');
             expect((decoded!.payload as any).aud).toBe('group-1-api');
@@ -269,8 +433,12 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
         });
 
         it('should not return id_token when scope does not include openid', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock
+            ).mockResolvedValue({
                 code: 'test-auth-code-2',
                 clientId: 'group-2-consumer',
                 accountId: 42,
@@ -283,13 +451,19 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 used: false,
                 account: TEST_ACCOUNT,
             });
-            (mockedPrisma.oAuthAuthorizationCode.update as jest.Mock).mockResolvedValue({});
-            (mockedPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthAuthorizationCode.update as jest.Mock
+            ).mockResolvedValue({});
+            (
+                mockedPrisma.tenantMembership.findUnique as jest.Mock
+            ).mockResolvedValue({
                 accountId: 42,
                 tenantId: 'tcss460-sp26',
                 role: 1,
             });
-            (mockedPrisma.oAuthRefreshToken.create as jest.Mock).mockResolvedValue({});
+            (
+                mockedPrisma.oAuthRefreshToken.create as jest.Mock
+            ).mockResolvedValue({});
 
             const res = await request(app)
                 .post('/v2/oauth/token')
@@ -297,7 +471,8 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 .send({
                     grant_type: 'authorization_code',
                     code: 'test-auth-code-2',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                    redirect_uri:
+                        'http://localhost:3000/api/auth/callback/tcss460',
                     client_id: 'group-2-consumer',
                     client_secret: 'test-secret-123',
                 });
@@ -308,7 +483,9 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
         });
 
         it('should reject invalid client credentials', async () => {
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
 
             const res = await request(app)
                 .post('/v2/oauth/token')
@@ -316,7 +493,8 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 .send({
                     grant_type: 'authorization_code',
                     code: 'some-code',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                    redirect_uri:
+                        'http://localhost:3000/api/auth/callback/tcss460',
                     client_id: 'group-2-consumer',
                     client_secret: 'wrong-secret',
                 });
@@ -335,12 +513,22 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
             const jwk = jwksRes.body.keys[0];
 
             // Reconstruct public key from JWK
-            const publicKeyObject = crypto.createPublicKey({ key: jwk, format: 'jwk' });
-            const publicKeyPem = publicKeyObject.export({ type: 'spki', format: 'pem' });
+            const publicKeyObject = crypto.createPublicKey({
+                key: jwk,
+                format: 'jwk',
+            });
+            const publicKeyPem = publicKeyObject.export({
+                type: 'spki',
+                format: 'pem',
+            });
 
             // Mock a full token exchange to get a real token
-            (mockedPrisma.oAuthClient.findUnique as jest.Mock).mockResolvedValue(TEST_CLIENT);
-            (mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock).mockResolvedValue({
+            (
+                mockedPrisma.oAuthClient.findUnique as jest.Mock
+            ).mockResolvedValue(TEST_CLIENT);
+            (
+                mockedPrisma.oAuthAuthorizationCode.findUnique as jest.Mock
+            ).mockResolvedValue({
                 code: 'verify-test-code',
                 clientId: 'group-2-consumer',
                 accountId: 42,
@@ -353,9 +541,15 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 used: false,
                 account: TEST_ACCOUNT,
             });
-            (mockedPrisma.oAuthAuthorizationCode.update as jest.Mock).mockResolvedValue({});
-            (mockedPrisma.tenantMembership.findUnique as jest.Mock).mockResolvedValue({ role: 1 });
-            (mockedPrisma.oAuthRefreshToken.create as jest.Mock).mockResolvedValue({});
+            (
+                mockedPrisma.oAuthAuthorizationCode.update as jest.Mock
+            ).mockResolvedValue({});
+            (
+                mockedPrisma.tenantMembership.findUnique as jest.Mock
+            ).mockResolvedValue({ role: 1 });
+            (
+                mockedPrisma.oAuthRefreshToken.create as jest.Mock
+            ).mockResolvedValue({});
 
             const tokenRes = await request(app)
                 .post('/v2/oauth/token')
@@ -363,17 +557,22 @@ describe('v2 OAuth — RS256 + Audience-Scoped Tokens', () => {
                 .send({
                     grant_type: 'authorization_code',
                     code: 'verify-test-code',
-                    redirect_uri: 'http://localhost:3000/api/auth/callback/tcss460',
+                    redirect_uri:
+                        'http://localhost:3000/api/auth/callback/tcss460',
                     client_id: 'group-2-consumer',
                     client_secret: 'test-secret-123',
                 });
 
             // Verify the access_token with the public key from JWKS
-            const verified = jwt.verify(tokenRes.body.access_token, publicKeyPem as string, {
-                algorithms: ['RS256'],
-                audience: 'group-1-api',
-                issuer: 'http://localhost:13000',
-            });
+            const verified = jwt.verify(
+                tokenRes.body.access_token,
+                publicKeyPem as string,
+                {
+                    algorithms: ['RS256'],
+                    audience: 'group-1-api',
+                    issuer: 'http://localhost:13000',
+                }
+            );
 
             expect((verified as any).sub).toBe('42');
             expect((verified as any).aud).toBe('group-1-api');

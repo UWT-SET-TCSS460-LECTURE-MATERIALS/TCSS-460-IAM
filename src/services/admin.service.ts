@@ -4,6 +4,7 @@ import { Prisma } from '../generated/prisma/client';
 import {
     generateSalt,
     generateHash,
+    generateTempPassword,
 } from '../core/utilities/credentialingUtils';
 import { ErrorCodes } from '../core/utilities/errorCodes';
 import { RoleName, UserRole } from '../core/models';
@@ -335,6 +336,62 @@ export const adminService = {
         });
 
         return { success: true };
+    },
+
+    /**
+     * Issue a temporary password for a user (admin action).
+     * Generates a random password, hashes it, and sets the
+     * mustChangePassword flag so the user is forced to change it
+     * on their next login.
+     *
+     * Returns the plaintext password so the admin can hand it off
+     * out-of-band (Canvas DM, Slack, etc).
+     */
+    async issueTempPassword(
+        userId: number
+    ): Promise<ServiceResult<{ tempPassword: string; email: string }>> {
+        const account = await prisma.account.findUnique({
+            where: { accountId: userId },
+            select: { accountId: true, email: true },
+        });
+
+        if (!account) {
+            return {
+                success: false,
+                error: {
+                    status: 404,
+                    message: 'User not found',
+                    code: ErrorCodes.USER_NOT_FOUND,
+                },
+            };
+        }
+
+        const tempPassword = generateTempPassword();
+        const salt = generateSalt();
+        const saltedHash = generateHash(tempPassword, salt);
+
+        await prisma.$transaction(async (tx) => {
+            const updated = await tx.accountCredential.updateMany({
+                where: { accountId: userId },
+                data: { saltedHash, salt },
+            });
+
+            if (updated.count === 0) {
+                await tx.accountCredential.create({
+                    data: { accountId: userId, saltedHash, salt },
+                });
+            }
+
+            await tx.account.update({
+                where: { accountId: userId },
+                data: { mustChangePassword: true, updatedAt: new Date() },
+            });
+        });
+
+        return {
+            success: true,
+            data: { tempPassword, email: account.email },
+        };
     },
 
     /**
